@@ -1,0 +1,72 @@
+/* General Body Styles */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f8f9fa;
+}
+
+/* Wrapper */
+.login-page-wrapper {
+  padding: 0;
+}
+
+/* Left Section */
+.auth-left-section {
+  background: linear-gradient(to bottom, #1691de, #127acc);
+  position: relative;
+  padding: 40px;
+  overflow: hidden;
+}
+
+/* Logo Circle */
+.logo-circle {
+  width: 150px;
+  height: 150px;
+  background-color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.logo-img {
+  width: 80px;
+  height: 80px;
+}
+
+/* Right Section */
+.auth-right-section {
+  background-color: #ffffff;
+  padding: 40px;
+}
+
+.login-form .form-control:focus {
+  box-shadow: none;
+  border-color: #1691de;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: #1691de;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #127acc;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .auth-left-section,
+  .auth-right-section {
+    text-align: center;
+    padding: 20px;
+  }
+
+  .logo-circle {
+    margin: 0 auto;
+  }
+}
+ 

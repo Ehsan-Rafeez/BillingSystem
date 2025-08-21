@@ -1,0 +1,115 @@
+  body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Sidebar hidden by default */
+.sidebar-menu {
+  height: 100%;
+  width: 220px;
+  position: fixed;
+  top: 56px;
+  /* Height of navbar */
+  left: -220px;
+  background-color: #343a40;
+  color: white;
+  transition: 0.3s;
+  padding-top: 20px;
+  z-index: 999;
+}
+
+.sidebar-menu a {
+  display: flex;
+  padding: 12px 20px;
+  color: white;
+  text-decoration: none;
+}
+
+.sidebar-menu a:hover {
+  background-color: #495057;
+}
+
+/* Sidebar active (visible) */
+.sidebar-menu.active {
+  left: 0;
+}
+
+/* ✅ Brand Logo styling */
+.brand-logo {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  border-radius: 5px;
+  background-color: white;
+  padding: 2px;
+}
+
+/* ✅ Brand text styling */
+.brand-text {
+  font-size: 1.25rem;
+}
+
+/* ✅ Profile avatar styling */
+.profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Content */
+.main-content {
+  transition: margin-left 0.8s;
+  padding: 50px;
+  margin-left: 180px;
+}
+
+/* Sidebar dropdown menu style */
+/* Removed old dropdown-menu positioning */
+/*
+.sidebar-menu .dropdown-menu {
+  background-color: #343a40;
+  border: none;
+}
+
+.sidebar-menu .dropdown-item {
+  color: white;
+}
+
+.sidebar-menu .dropdown-item:hover {
+  background-color: #495057;
+}
+*/
+
+/* CHANGED: Styles for collapsible submenu */
+.sidebar-menu ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.sidebar-menu ul li a {
+  padding-left: 20px;
+  display: block;
+  color: white;
+  text-decoration: none;
+}
+
+.sidebar-menu ul li a:hover {
+  background-color: #495057;
+}
+
+/* Adjust caret icon (toggle arrow) */
+.sidebar-menu a.dropdown-toggle::after {
+  float: right;
+  margin-top: 8px;
+  content: "▼"; /* Bootstrap default is arrow, simpler here */
+  font-size: 0.6em;
+  transition: transform 0.3s ease;
+}
+
+/* Rotate arrow when expanded */
+.sidebar-menu a[aria-expanded="true"]::after {
+  transform: rotate(-180deg);
+}

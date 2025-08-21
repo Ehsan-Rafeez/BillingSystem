@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - School Management System{% endblock %}
+ {% block content %}
+<div class="container mt-5 pt-5">
+  <h1 class="text-center mb-4">Customer Management</h1>
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-body text-center">
+          <h5 class="card-title">Add Customer</h5>
+          <p class="card-text">Add new customer records.</p>
+          <a href="{% url 'create_customer' %}" class="btn btn-primary">Add Customer</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card mb-4">
+        <div class="card-body text-center">
+          <h5 class="card-title">List Customers</h5>
+          <p class="card-text">View and manage existing customer records.</p>
+            <a href="" class="btn btn-primary">List Customers</a>
+        </div>
+      </div>    
+
+    </div>
+    </div>
+    </div>
+{% endblock %}

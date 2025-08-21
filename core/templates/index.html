@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - School Management System{% endblock %}
+ {% block content %}
+<div class="container mt-5 pt-5">
+  <h1 class="text-center mb-4">Welcome to the Billin Management Software</h1>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-body text-center">
+          <img src="" alt="School Icon" class="img-fluid rounded-circle mb-3" style="width: 100px; height: 100px;">
+          <h5 class="card-title">Dashboard</h5>
+          <p class="card-text">Manage all operations efficiently.</p>
+          <a href="#" class="btn btn-primary">Go to Dashboard</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-body text-center">
+          <img src="" alt="Student Icon" class="img-fluid rounded-circle mb-3" style="width: 100px; height: 100px;">
+          <h5 class="card-title">Customer Management</h5>
+          <p class="card-text">Add, edit, and manage student records.</p>
+            <a href="{% url 'customer_list'%}" class="btn btn-primary">Manage Customers</a>
+
+
+{% endblock %}
