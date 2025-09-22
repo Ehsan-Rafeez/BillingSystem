@@ -1,17 +1,69 @@
 {% extends 'base.html' %}
 
-{% block title %}Create Order{% endblock %}
+{% block title %}
+  Create Order
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Create New Order</h2>
-    <form method="post">
+  <div class="container-fluid d-flex justify-content-center align-items-start" style="height: 100vh; padding: 0;">
+    <div class="card p-4 shadow-lg" style="width: 100%; max-width: 900px; border-radius: 15px; ">
+      <h2 class="text-center mb-4">Create New Order</h2>
+      <form method="post">
         {% csrf_token %}
+
+        <!-- Order Name Field -->
         <div class="mb-3">
-            <label class="form-label">Order Name</label>
-            <input type="text" name="order_name" class="form-control" required>
+          <label for="orderName" class="form-label">Order Name</label>
+          <input type="text" name="order_name" id="orderName" class="form-control" placeholder="Enter order name" required />
         </div>
-        <button type="submit" class="btn btn-primary mt-3">Submit</button>
-    </form>
-</div>
+
+        <!-- Customer Name Field -->
+        <div class="mb-3">
+          <label for="customerName" class="form-label">Customer Name</label>
+          <input type="text" name="customer_name" id="customerName" class="form-control" placeholder="Enter customer name" required />
+        </div>
+
+        <!-- Address Field -->
+        <div class="mb-3">
+          <label for="address" class="form-label">Address</label>
+          <textarea name="address" id="address" rows="4" class="form-control" placeholder="Enter customer address" required></textarea>
+        </div>
+
+        <!-- Phone Number Field -->
+        <div class="mb-3">
+          <label for="phone" class="form-label">Phone Number</label>
+          <input type="text" name="phone" id="phone" class="form-control" placeholder="Enter phone number" required />
+        </div>
+
+        <!-- Location Field -->
+        <div class="mb-3">
+          <label for="location" class="form-label">Location</label>
+          <input type="text" name="location" id="location" class="form-control" placeholder="Enter location" required />
+        </div>
+
+        <!-- Delivery Date Field -->
+        <div class="mb-3">
+          <label for="deliveryDate" class="form-label">Delivery Date</label>
+          <input type="date" name="delivery_date" id="deliveryDate" class="form-control" required />
+        </div>
+
+        <!-- Total Amount Field -->
+        <div class="mb-3">
+          <label for="totalAmount" class="form-label">Total Amount</label>
+          <input type="number" name="total_amount" id="totalAmount" class="form-control" placeholder="Enter total amount" required />
+        </div>
+
+        <!-- Received Amount Field -->
+        <div class="mb-3">
+          <label for="receivedAmount" class="form-label">Received Amount</label>
+          <input type="number" name="received_amount" id="receivedAmount" class="form-control" placeholder="Enter received amount" required />
+        </div>
+
+        <!-- Submit Button -->
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-primary btn-lg mt-3">Submit Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
 {% endblock %}
