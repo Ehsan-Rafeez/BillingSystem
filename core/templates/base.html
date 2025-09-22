@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}School Management System{% endblock %}</title>
+    <title>{% block title %}Billing System{% endblock %}</title>
 
     <!-- Bootstrap CSS -->
     <link
@@ -13,19 +13,16 @@
     />
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/index.css' %}" /> 
-     <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/index.css' %}" />
     <link rel="stylesheet" href="{% static 'css/form.css' %}" />
+  </head>
 
-
-    
-    
-   <body>
+  <body>
     <!-- Navbar -->
     <nav class="navbar navbar-dark bg-dark fixed-top">
       <div class="container-fluid">
         <a class="navbar-brand d-flex align-items-center" href="#">
-          <span class="brand-text me-2 fw-bold">SMS</span>
+          <span class="brand-text me-2 fw-bold">Billing System</span>
           <img
             src="{% static 'images/icons8-school-48.png' %}"
             alt="School Logo"
@@ -56,10 +53,7 @@
               class="profile-avatar me-2"
             />
           </a>
-          <ul
-            class="dropdown-menu dropdown-menu-end"
-            aria-labelledby="profileDropdown"
-          >
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
             <li><a class="dropdown-item" href="#">Account</a></li>
             <li><a class="dropdown-item" href="#">Profile</a></li>
             <li><hr class="dropdown-divider" /></li>
@@ -72,8 +66,8 @@
     <!-- Sidebar -->
     <div class="sidebar-menu" id="sidebarMenu">
       <a href="">Dashboard</a>
-   
-      <!-- Profiles Collapsible (CHANGED) -->
+
+      <!-- Customers Collapsible -->
       <a
         href="#profilesSubmenu"
         data-bs-toggle="collapse"
@@ -84,13 +78,27 @@
         Customers
       </a>
       <ul class="collapse list-unstyled ps-3" id="profilesSubmenu">
-    <li><a class="dropdown-item" href="">Add User</a></li>
-    <li><a class="dropdown-item" href="">List Users</a></li>
-</ul>
+        <li><a class="dropdown-item" href="#">Add User</a></li>
+        <li><a class="dropdown-item" href="#">List Users</a></li>
+      </ul>
 
+      <!-- Orders Collapsible -->
+      <a
+        href="#ordersSubmenu"
+        data-bs-toggle="collapse"
+        aria-expanded="true"
+        class="dropdown-toggle text-white d-block px-3 py-2"
+        id="sidebarOrdersDropdown"
+      >
+        Orders
+      </a>
+      <ul class="collapse list-unstyled ps-3" id="ordersSubmenu">
+        <li><a class="dropdown-item" href="{% url 'create_orders' %}">Add Order</a></li>
+        <li><a class="dropdown-item" href="{% url 'list_orders' %}">List Orders</a></li>
+      </ul>
 
-      <!-- Logout must stay outside dropdown -->
-      <a href="" class="px-3 py-2 d-block">Logout</a>
+      <!-- Logout -->
+      <a href="#" class="px-3 py-2 d-block">Logout</a>
     </div>
 
     <!-- Main Content -->
@@ -107,11 +115,9 @@
 
     <!-- Sidebar Toggle Script -->
     <script>
-      document
-        .getElementById("sidebarToggle")
-        .addEventListener("click", function () {
-          document.getElementById("sidebarMenu").classList.toggle("active");
-        });
+      document.getElementById("sidebarToggle").addEventListener("click", function () {
+        document.getElementById("sidebarMenu").classList.toggle("active");
+      });
     </script>
 
     {% block extra_scripts %}{% endblock %}

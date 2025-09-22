@@ -19,7 +19,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('core.urls')),  # Assuming you have a core app with an index view
-    path('customer/', include('customers.urls')),  # Include customer-related URLs
-    
+    path('', include('core.urls')),  
+    path('customer/', include('customers.urls')),
+    path('ordersapp/', include('ordersapp.urls')),
 ]
