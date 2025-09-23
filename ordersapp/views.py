@@ -86,6 +86,9 @@ def payment_entry(request, order_id):
 
     return render(request, 'ordersapp/payment_entry.html', {'order': order})
 
+def payment_entry_select(request):
+    orders = Order.objects.all()
+    return render(request, 'ordersapp/payment_entry_select.html', {'orders': orders})
 
 # -----------------------
 # Edit Order View

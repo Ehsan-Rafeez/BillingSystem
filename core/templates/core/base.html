@@ -95,18 +95,7 @@
       <ul class="collapse list-unstyled ps-3" id="ordersSubmenu">
         <li><a class="dropdown-item" href="{% url 'create_orders' %}">Add Order</a></li>
         <li><a class="dropdown-item" href="{% url 'list_orders' %}">List Orders</a></li>
-
-        {% if orders %}
-          {% for order in orders %}
-            <li>
-              <a class="dropdown-item" href="{% url 'payment_entry' order.id %}">
-                Payment Entry for Order #{{ order.id }}
-              </a>
-            </li>
-          {% endfor %}
-        {% else %}
-          <li><a class="dropdown-item disabled">No orders available</a></li>
-        {% endif %}
+        <li><a class="dropdown-item" href="{% url 'payment_entry_select' %}">Payment Entry</a></li>
       </ul>
 
       <!-- Logout -->
