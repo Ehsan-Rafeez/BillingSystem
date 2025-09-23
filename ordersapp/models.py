@@ -1,3 +1,30 @@
+# ordersapp/models.py
 from django.db import models
+from django.utils import timezone
 
-# Create your models here.
+class Order(models.Model):
+    order_name = models.CharField(max_length=255)
+    customer_name = models.CharField(max_length=255)
+    address = models.TextField()
+    phone_number = models.CharField(max_length=20)
+    location = models.CharField(max_length=255, blank=True, null=True)
+    delivery_date = models.DateField()
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    received_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # default added
+
+    def __str__(self):
+        return f"{self.order_name} - {self.customer_name}"
+
+    @property
+    def due_amount(self):
+        """Calculate remaining due amount"""
+        return self.total_amount - self.received_amount
+
+
+class Payment(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='payments')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)  # timestamp
+
+    def __str__(self):
+        return f"Payment of {self.amount} for {self.order.order_name}"

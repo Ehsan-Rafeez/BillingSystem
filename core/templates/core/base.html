@@ -21,7 +21,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-dark bg-dark fixed-top">
       <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center" href="#">
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'list_orders' %}">
           <span class="brand-text me-2 fw-bold">Billing System</span>
           <img
             src="{% static 'images/icons8-school-48.png' %}"
@@ -65,7 +65,7 @@
 
     <!-- Sidebar -->
     <div class="sidebar-menu" id="sidebarMenu">
-      <a href="">Dashboard</a>
+      <a href="{% url 'list_orders' %}">Dashboard</a>
 
       <!-- Customers Collapsible -->
       <a
@@ -78,8 +78,8 @@
         Customers
       </a>
       <ul class="collapse list-unstyled ps-3" id="profilesSubmenu">
-        <li><a class="dropdown-item" href="#">Add User</a></li>
-        <li><a class="dropdown-item" href="#">List Users</a></li>
+        <li><a class="dropdown-item" href="{% url 'create_orders' %}">Add Customer</a></li>
+        <li><a class="dropdown-item" href="{% url 'list_orders' %}">List Customers</a></li>
       </ul>
 
       <!-- Orders Collapsible -->
@@ -95,6 +95,18 @@
       <ul class="collapse list-unstyled ps-3" id="ordersSubmenu">
         <li><a class="dropdown-item" href="{% url 'create_orders' %}">Add Order</a></li>
         <li><a class="dropdown-item" href="{% url 'list_orders' %}">List Orders</a></li>
+
+        {% if orders %}
+          {% for order in orders %}
+            <li>
+              <a class="dropdown-item" href="{% url 'payment_entry' order.id %}">
+                Payment Entry for Order #{{ order.id }}
+              </a>
+            </li>
+          {% endfor %}
+        {% else %}
+          <li><a class="dropdown-item disabled">No orders available</a></li>
+        {% endif %}
       </ul>
 
       <!-- Logout -->
@@ -104,9 +116,7 @@
     <!-- Main Content -->
     <div class="main-content">
       <div class="container mt-5 pt-4">
-        {% block content %}
-        <!-- Page-specific content here -->
-        {% endblock %}
+        {% block content %}{% endblock %}
       </div>
     </div>
 

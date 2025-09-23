@@ -1,0 +1,66 @@
+{% extends 'core/base.html' %}
+{% block title %}Create Order - School Management System{% endblock %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Create New Order</h2>
+
+    <div class="card p-4 shadow">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Order Name -->
+            <div class="mb-3">
+                <label class="form-label">Order Name</label>
+                <input type="text" name="order_name" class="form-control" placeholder="Enter order name" required>
+            </div>
+
+            <!-- Customer Name -->
+            <div class="mb-3">
+                <label class="form-label">Customer Name</label>
+                <input type="text" name="customer_name" class="form-control" placeholder="Enter customer name" required>
+            </div>
+
+            <!-- Address -->
+            <div class="mb-3">
+                <label class="form-label">Address</label>
+                <textarea name="address" class="form-control" rows="2" placeholder="Enter customer address" required></textarea>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="mb-3">
+                <label class="form-label">Phone Number</label>
+                <input type="text" name="phone_number" class="form-control" placeholder="Enter phone number" required>
+            </div>
+
+            <!-- Location -->
+            <div class="mb-3">
+                <label class="form-label">Location</label>
+                <input type="text" name="location" class="form-control" placeholder="Enter location">
+            </div>
+
+            <!-- Delivery Date -->
+            <div class="mb-3">
+                <label class="form-label">Delivery Date</label>
+                <input type="date" name="delivery_date" class="form-control" required>
+            </div>
+
+            <!-- Total Amount -->
+            <div class="mb-3">
+                <label class="form-label">Total Amount</label>
+                <input type="number" step="0.01" name="total_amount" class="form-control" placeholder="Enter total amount" required>
+            </div>
+
+            <!-- Received Amount -->
+            <div class="mb-3">
+                <label class="form-label">Received Amount</label>
+                <input type="number" step="0.01" name="received_amount" class="form-control" placeholder="Enter received amount" value="0">
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary">Create Order</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

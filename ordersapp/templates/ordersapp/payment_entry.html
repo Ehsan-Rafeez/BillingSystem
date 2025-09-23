@@ -1,0 +1,62 @@
+{% extends 'core/base.html' %}
+{% block title %}Payment Entry - School Management System{% endblock %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Payment Entry</h2>
+
+    <!-- Order Summary Card -->
+    <div class="card p-3 mb-4 shadow">
+        <h5 class="mb-3">Order Details</h5>
+        <p><strong>Order Name:</strong> {{ order.order_name }}</p>
+        <p><strong>Customer:</strong> {{ order.customer_name }}</p>
+        <p><strong>Total Amount:</strong> {{ order.total_amount }}</p>
+        <p><strong>Received Amount:</strong> {{ order.received_amount }}</p>
+        <p><strong>Pending Amount:</strong> {{ order.pending_amount }}</p>
+    </div>
+
+    <!-- Payment Form -->
+    <div class="card p-3 shadow">
+        <h5 class="mb-3">Add Payment</h5>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Payment Amount</label>
+                <input type="number" name="amount" step="0.01" class="form-control" placeholder="Enter payment amount" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Payment</button>
+        </form>
+    </div>
+
+    <!-- Payment History -->
+    <div class="mt-4">
+        <h5>Payment History</h5>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in order.payments.all %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ payment.amount }}</td>
+                    <td>{{ payment.date|date:"d M Y, H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center">No payments added yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Complete Button -->
+    <a href="" class="btn btn-success mt-3">Mark Order as Complete</a>
+</div>
+
+{% endblock %}
