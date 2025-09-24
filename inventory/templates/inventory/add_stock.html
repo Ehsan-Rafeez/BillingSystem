@@ -1,8 +1,78 @@
 {% extends 'core/base.html' %}
-{% block title %}Add Stock{% endblock %}
+{% block title %}Add Stock - Inventory{% endblock %}
 {% block content %}
+
 <div class="container mt-5 pt-4">
-  <h3 class="mb-3">Add Stock</h3>
-  <p class="text-muted">Build your stock form here.</p>
+    <h1 class="mb-4">Add New Stock Item</h1>
+    
+    <!-- Form to Add Stock -->
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Stock Name -->
+        <div class="mb-3">
+            <label for="stock_name" class="form-label">Stock Name</label>
+            <input type="text" class="form-control" id="stock_name" name="stock_name" required>
+        </div>
+        
+        <!-- Category Selection -->
+        <div class="mb-3">
+            <label for="category" class="form-label">Category</label>
+            <select class="form-select" id="category" name="category" required>
+                <option value="buy">Buy</option>
+                <option value="rent">Rent</option>
+                <option value="order">Order</option>
+            </select>
+        </div>
+        
+        <!-- Quantity -->
+        <div class="mb-3">
+            <label for="quantity" class="form-label">Quantity</label>
+            <input type="number" class="form-control" id="quantity" name="quantity" required min="1">
+        </div>
+
+        <!-- Price per Unit (for Buy or Rent) -->
+        <div class="mb-3">
+            <label for="price_per_unit" class="form-label">Price per Unit (PKR)</label>
+            <input type="number" class="form-control" id="price_per_unit" name="price_per_unit" step="0.01" min="0" required>
+        </div>
+        
+        <!-- Rent Duration (for Rent) -->
+        <div class="mb-3" id="rent_duration_container" style="display:none;">
+            <label for="rent_duration" class="form-label">Rent Duration (Months)</label>
+            <input type="number" class="form-control" id="rent_duration" name="rent_duration" min="1">
+        </div>
+        
+        <!-- Order Date (for Order) -->
+        <div class="mb-3" id="order_date_container" style="display:none;">
+            <label for="order_date" class="form-label">Order Date</label>
+            <input type="date" class="form-control" id="order_date" name="order_date">
+        </div>
+        
+        <!-- Submit Button -->
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">Add Stock</button>
+            <a href="{% url 'list_stock' %}" class="btn btn-light ms-2">Cancel</a>
+        </div>
+    </form>
 </div>
+
+<!-- JavaScript to Toggle Fields -->
+<script>
+    // Show the appropriate fields based on category selection
+    document.getElementById('category').addEventListener('change', function() {
+        var category = this.value;
+        if (category === 'rent') {
+            document.getElementById('rent_duration_container').style.display = 'block';
+            document.getElementById('order_date_container').style.display = 'none';
+        } else if (category === 'order') {
+            document.getElementById('order_date_container').style.display = 'block';
+            document.getElementById('rent_duration_container').style.display = 'none';
+        } else {
+            document.getElementById('rent_duration_container').style.display = 'none';
+            document.getElementById('order_date_container').style.display = 'none';
+        }
+    });
+</script>
+
 {% endblock %}

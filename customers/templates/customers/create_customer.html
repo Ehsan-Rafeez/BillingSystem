@@ -1,0 +1,175 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Create Customer - Billing Management Software{% endblock %}
+
+{% block content %}
+{% if messages %}
+<div>
+  {% for message in messages %}
+  <div class="alert 
+      {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} 
+      alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Form container with modern design -->
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10 col-sm-12">
+      <div class="card shadow-lg border-light rounded-3">
+        <div class="card-header text-center py-3">
+          <h3 class="text-primary">{{ form.instance.pk|yesno:"Edit Customer,Create Customer" }}</h3>
+        </div>
+
+        <div class="card-body">
+          <form method="POST" action="{% if form.instance.pk %}{% url 'edit_customer' form.instance.pk %}{% else %}{% url 'create_customer' %}{% endif %}" enctype="multipart/form-data" id="customerForm">
+            {% csrf_token %}
+            
+            <!-- Customer ID (visible only when creating a new customer) -->
+            {% if not form.instance.pk %}
+            <div class="mb-3">
+                <label for="customer_id" class="form-label fw-bold">Customer ID</label>
+                <input type="text" value="CUST-{{ form.instance.id|default_if_none:'' }}" class="form-control" id="customer_id" name="customer_id" readonly />
+            </div>
+            {% else %}
+            <div class="mb-3">
+                <label for="customer_id" class="form-label fw-bold">Customer ID</label>
+                <input type="text" value="{{ form.instance.customer_id }}" class="form-control" id="customer_id" name="customer_id" readonly />
+            </div>
+            {% endif %}
+
+            <!-- Name -->
+            <div class="mb-3">
+                <label for="name" class="form-label fw-bold">Name</label>
+                <input type="text" class="form-control" id="name" name="name" placeholder="Enter Name" required value="{{ form.name.value|default_if_none:'' }}" />
+            </div>
+
+            <!-- Customer Type -->
+            <div class="mb-3">
+                <label for="customer_type" class="form-label fw-bold">Customer Type</label>
+                <select class="form-select" id="customer_type" name="customer_type" required>
+                    <option value="BUS" {% if form.customer_type.value == "BUS" %}selected{% endif %}>Business</option>
+                    <option value="IND" {% if form.customer_type.value == "IND" %}selected{% endif %}>Individual</option>
+                </select>
+            </div>
+
+            <!-- Email -->
+            <div class="mb-3">
+                <label for="email" class="form-label fw-bold">Email</label>
+                <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" value="{{ form.email.value|default_if_none:'' }}" />
+            </div>
+
+            <!-- Phone -->
+            <div class="mb-3">
+                <label for="phone" class="form-label fw-bold">Phone</label>
+                <input type="text" class="form-control" id="phone" name="phone" placeholder="Enter phone" value="{{ form.phone.value|default_if_none:'' }}" />
+            </div>
+
+            <!-- CNIC -->
+            <div class="mb-3">
+                <label for="cnic" class="form-label fw-bold">CNIC</label>
+                <input type="text" class="form-control" id="cnic" name="cnic" placeholder="Enter CNIC" value="{{ form.cnic.value|default_if_none:'' }}" />
+            </div>
+
+            <!-- Tax Number -->
+            <div class="mb-3">
+                <label for="tax_number" class="form-label fw-bold">Tax Number</label>
+                <input type="text" class="form-control" id="tax_number" name="tax_number" placeholder="Enter Tax Number" value="{{ form.tax_number.value|default_if_none:'' }}" />
+            </div>
+
+            <!-- Notes -->
+            <div class="mb-3">
+                <label for="notes" class="form-label fw-bold">Notes</label>
+                <textarea class="form-control" id="notes" name="notes" placeholder="Enter any additional notes" rows="3">{{ form.notes.value|default_if_none:'' }}</textarea>
+            </div>
+
+            <!-- Address -->
+            <div class="mb-3">
+                <label for="address" class="form-label fw-bold">Address</label>
+                <textarea class="form-control" id="address" name="address" placeholder="Enter address" rows="3">{{ form.address.value|default_if_none:'' }}</textarea>
+            </div>
+
+            <!-- Submit Button with Hover Effect -->
+            <button type="submit" class="btn btn-primary submit-btn w-100" id="submitButton">{{ form.instance.pk|yesno:"Update,Create" }}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pop-up Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to submit this form?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmSubmit">Yes, Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+<!-- JavaScript for smooth form submission, animations, and pop-up -->
+<script>
+// Pop-up modal functionality for confirmation
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('customerForm');
+    const submitBtn = document.getElementById('submitButton');
+    const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+    const confirmSubmit = document.getElementById('confirmSubmit');
+
+    // Open confirmation modal on submit
+    submitBtn.addEventListener('click', function(event) {
+        event.preventDefault();  // Prevent form submission
+        confirmationModal.show();
+    });
+
+    // Confirm submission in the modal
+    confirmSubmit.addEventListener('click', function() {
+        form.submit();  // Submit the form after confirmation
+        confirmationModal.hide();
+    });
+
+    // Add smooth transitions for form input focus and blur
+    const inputs = form.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+        input.addEventListener('focus', () => {
+            input.style.transition = 'all 0.3s ease';
+            input.style.boxShadow = '0px 0px 10px rgba(0, 123, 255, 0.5)';
+            input.style.borderColor = '#007bff';
+        });
+
+        input.addEventListener('blur', () => {
+            input.style.boxShadow = 'none';
+            input.style.borderColor = '';
+        });
+    });
+
+    // Hover effect for submit button
+    submitBtn.addEventListener('mouseenter', () => {
+        submitBtn.style.transform = 'scale(1.05)';
+        submitBtn.style.transition = 'all 0.3s ease';
+    });
+
+    submitBtn.addEventListener('mouseleave', () => {
+        submitBtn.style.transform = 'scale(1)';
+    });
+});
+</script>
+
+<!-- Bootstrap JS for modal -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
