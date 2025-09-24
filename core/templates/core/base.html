@@ -65,7 +65,7 @@
 
     <!-- Sidebar -->
     <div class="sidebar-menu" id="sidebarMenu">
-      <a href="{% url 'list_orders' %}">Dashboard</a>
+      <a href="{% url 'index' %}">Dashboard</a>
 
       <!-- Customers Collapsible -->
       <a
@@ -96,6 +96,20 @@
         <li><a class="dropdown-item" href="{% url 'create_orders' %}">Add Order</a></li>
         <li><a class="dropdown-item" href="{% url 'list_orders' %}">List Orders</a></li>
         <li><a class="dropdown-item" href="{% url 'payment_entry_select' %}">Payment Entry</a></li>
+      </ul>
+      <!-- Inventory Collapsible -->
+        <a
+        href="#inventorySubmenu"
+        data-bs-toggle="collapse"
+        aria-expanded="true"
+        class="dropdown-toggle text-white d-block px-3 py-2"
+        id="sidebarOrdersDropdown"
+      >
+        Inventory
+      </a>
+      <ul class="collapse list-unstyled ps-3" id="inventorySubmenu">
+        <li><a class="dropdown-item" href="{% url 'add_stock' %}">Add Stock</a></li>
+        <li><a class="dropdown-item" href="{% url 'list_stock' %}">List Stock</a></li>
       </ul>
 
       <!-- Logout -->

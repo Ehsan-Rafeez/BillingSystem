@@ -1,0 +1,9 @@
+{% extends 'core/base.html' %}
+{% block title %}Stock List{% endblock %}
+{% block content %}
+<div class="container mt-5 pt-4">
+  <h3 class="mb-3">Stock List</h3>
+  <p class="text-muted">Table of stock items will go here.</p>
+  <a href="{% url 'add_stock' %}" class="btn btn-primary">Add Stock</a>
+</div>
+{% endblock %}
