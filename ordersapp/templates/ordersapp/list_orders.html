@@ -2,21 +2,37 @@
 {% block title %}Orders List - School Management System{% endblock %} 
 
 {% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+
+<style>
+  .actions-wrap { display:flex; flex-wrap:wrap; gap:.56rem; }
+  .action-btn{
+    display:inline-flex; align-items:center; gap:.5rem;
+    padding:.45rem .85rem; border-radius:999px;
+    border:1px solid transparent;
+    font-weight:600; line-height:1;
+    transition: transform .16s ease, box-shadow .16s ease;
+  }
+  .action-btn:hover{ transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.12); }
+  .action-add{ background:#e8f7ee; color:#0a7a2f; }
+  .action-edit{ background:#fff3cd; color:#7a5a00; }
+  .action-delete{ background:#fde2e1; color:#9c1e16; }
+  .action-label{ font-size:.92rem; }
+
+  @media(max-width:768px){
+    .action-label{ display:none; }
+  }
+</style>
+
 <div class="container mt-4">
   <h2 class="mb-4">Orders List</h2>
 
   <table class="table table-striped table-bordered shadow">
     <thead class="table-dark">
       <tr>
-        <th>ID</th>
-        <th>Order Name</th>
-        <th>Customer Name</th>
-        <th>Phone</th>
-        <th>Delivery Date</th>
-        <th>Total Amount</th>
-        <th>Received Amount</th>
-        <th>Due Amount</th>
-        <th>Actions</th>
+        <th>ID</th><th>Order Name</th><th>Customer Name</th>
+        <th>Phone</th><th>Delivery Date</th><th>Total Amount</th>
+        <th>Received Amount</th><th>Due Amount</th><th>Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -31,24 +47,123 @@
         <td>{{ order.received_amount }}</td>
         <td>{{ order.due_amount }}</td>
         <td>
-          <a href="{% url 'payment_entry' order.id %}" class="btn btn-success btn-sm mb-1">Add Payment</a>
-          <a href="{% url 'edit_order' order.id %}" class="btn btn-warning btn-sm mb-1">Edit</a>
-          <form method="post" action="{% url 'delete_order' order.id %}" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger btn-sm mb-1" onclick="return confirm('Are you sure you want to delete this order?');">
-              Delete
-            </button>
-          </form>
+          <div class="actions-wrap">
+            <a href="{% url 'payment_entry' order.id %}"
+               class="action-btn action-add"
+               data-action="Add Payment"
+               data-type="add"
+               data-href="{% url 'payment_entry' order.id %}">
+              <i class="bi bi-cash-coin"></i><span class="action-label">Add Payment</span>
+            </a>
+
+            <a href="{% url 'edit_order' order.id %}"
+               class="action-btn action-edit"
+               data-action="Edit Order"
+               data-type="edit"
+               data-href="{% url 'edit_order' order.id %}">
+              <i class="bi bi-pencil-square"></i><span class="action-label">Edit</span>
+            </a>
+
+            <form method="post" action="{% url 'delete_order' order.id %}" class="d-inline delete-form">
+              {% csrf_token %}
+              <button type="button"
+                      class="action-btn action-delete"
+                      data-action="Delete Order"
+                      data-type="delete"
+                      data-submit="closest-form">
+                <i class="bi bi-trash3"></i><span class="action-label">Delete</span>
+              </button>
+            </form>
+          </div>
         </td>
       </tr>
       {% empty %}
-      <tr>
-        <td colspan="9" class="text-center">No orders found.</td>
-      </tr>
+      <tr><td colspan="9" class="text-center">No orders found.</td></tr>
       {% endfor %}
     </tbody>
   </table>
 
   <a href="{% url 'create_orders' %}" class="btn btn-primary mt-3">Create New Order</a>
 </div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+(function(){
+  // Intercept all action buttons
+  document.addEventListener('click', async function(e){
+    const btn = e.target.closest('.action-btn');
+    if(!btn) return;
+
+    e.preventDefault();
+
+    const type  = btn.dataset.type;                   // add | edit | delete
+    const label = btn.dataset.action || 'Proceed';    // button label
+    const href  = btn.dataset.href;                   // for links
+    const isForm= btn.dataset.submit === 'closest-form';
+
+    // Configure popup per action
+    let icon = 'question', confirmText = 'Yes';
+    let title = label, text = `Do you want to ${label.toLowerCase()}?`;
+    let confirmColor = '#0d6efd'; // bootstrap primary
+
+    if(type === 'delete'){
+      icon = 'warning';
+      title = 'Delete this order?';
+      text = 'This will permanently delete the order. This action cannot be undone.';
+      confirmText = 'Yes, delete';
+      confirmColor = '#dc3545'; // danger
+    } else if(type === 'edit'){
+      icon = 'question';
+      title = 'Edit this order?';
+      text = 'You will be taken to the edit form.';
+      confirmText = 'Proceed';
+    } else if(type === 'add'){
+      icon = 'question';
+      title = 'Add payment?';
+      text = 'You will be taken to the payment entry page.';
+      confirmText = 'Proceed';
+      confirmColor = '#198754'; // success-ish for add
+    }
+
+    const result = await Swal.fire({
+      title, text, icon,
+      showCancelButton: true,
+      confirmButtonText: confirmText,
+      cancelButtonText: 'Cancel',
+      reverseButtons: true,
+      buttonsStyling: false,
+      customClass: {
+        popup: 'rounded-4',
+        confirmButton: 'btn',
+        cancelButton: 'btn btn-light border ms-2'
+      },
+      didOpen: (el) => {
+        const confirmBtn = el.querySelector('.swal2-confirm.btn');
+        confirmBtn.style.backgroundColor = confirmColor;
+        confirmBtn.style.color = '#fff';
+      }
+    });
+
+    if(result.isConfirmed){
+      if(isForm){
+        // Submit the delete form
+        btn.closest('form').submit();
+      } else if(href){
+        // Optional small success toast before navigate
+        await Swal.fire({
+          title: (type==='delete'?'Deleting...':'Opening...'),
+          timer: 600, showConfirmButton: false,
+          didOpen: () => Swal.showLoading()
+        });
+        window.location.href = href;
+      }
+    } else {
+      // Optional: a tiny toast on cancel
+      // Swal.fire({toast:true, position:'bottom', timer:1000, showConfirmButton:false, icon:'info', title:'Cancelled'});
+    }
+  });
+})();
+</script>
 {% endblock %}

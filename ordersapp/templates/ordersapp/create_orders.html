@@ -1,66 +1,121 @@
 {% extends 'core/base.html' %}
-{% block title %}Create Order - School Management System{% endblock %}
+{% block title %}{% if is_edit %}Edit Order{% else %}Create Order{% endif %} - School Management System{% endblock %}
 {% block content %}
 
 <div class="container mt-4">
-    <h2 class="mb-4">Create New Order</h2>
+  <h2 class="mb-4">{% if is_edit %}Edit Order{% else %}Create New Order{% endif %}</h2>
 
-    <div class="card p-4 shadow">
-        <form method="post">
-            {% csrf_token %}
-            
-            <!-- Order Name -->
-            <div class="mb-3">
-                <label class="form-label">Order Name</label>
-                <input type="text" name="order_name" class="form-control" placeholder="Enter order name" required>
-            </div>
+  <div class="card p-4 shadow">
+    <form method="post" id="orderForm"
+          action="{% if is_edit %}{% url 'edit_order' order.id %}{% else %}{% url 'create_orders' %}{% endif %}">
+      {% csrf_token %}
 
-            <!-- Customer Name -->
-            <div class="mb-3">
-                <label class="form-label">Customer Name</label>
-                <input type="text" name="customer_name" class="form-control" placeholder="Enter customer name" required>
-            </div>
+      <!-- Order Name -->
+      <div class="mb-3">
+        <label class="form-label">Order Name</label>
+        <input type="text" name="order_name" class="form-control" placeholder="Enter order name" required
+               value="{% if is_edit %}{{ order.order_name }}{% endif %}">
+      </div>
 
-            <!-- Address -->
-            <div class="mb-3">
-                <label class="form-label">Address</label>
-                <textarea name="address" class="form-control" rows="2" placeholder="Enter customer address" required></textarea>
-            </div>
+      <!-- Customer Name -->
+      <div class="mb-3">
+        <label class="form-label">Customer Name</label>
+        <input type="text" name="customer_name" class="form-control" placeholder="Enter customer name" required
+               value="{% if is_edit %}{{ order.customer_name }}{% endif %}">
+      </div>
 
-            <!-- Phone Number -->
-            <div class="mb-3">
-                <label class="form-label">Phone Number</label>
-                <input type="text" name="phone_number" class="form-control" placeholder="Enter phone number" required>
-            </div>
+      <!-- Address -->
+      <div class="mb-3">
+        <label class="form-label">Address</label>
+        <textarea name="address" class="form-control" rows="2" placeholder="Enter customer address" required>{% if is_edit %}{{ order.address }}{% endif %}</textarea>
+      </div>
 
-            <!-- Location -->
-            <div class="mb-3">
-                <label class="form-label">Location</label>
-                <input type="text" name="location" class="form-control" placeholder="Enter location">
-            </div>
+      <!-- Phone Number -->
+      <div class="mb-3">
+        <label class="form-label">Phone Number</label>
+        <input type="text" name="phone_number" class="form-control" placeholder="Enter phone number" required
+               value="{% if is_edit %}{{ order.phone_number }}{% endif %}">
+      </div>
 
-            <!-- Delivery Date -->
-            <div class="mb-3">
-                <label class="form-label">Delivery Date</label>
-                <input type="date" name="delivery_date" class="form-control" required>
-            </div>
+      <!-- Location -->
+      <div class="mb-3">
+        <label class="form-label">Location</label>
+        <input type="text" name="location" class="form-control" placeholder="Enter location"
+               value="{% if is_edit %}{{ order.location }}{% endif %}">
+      </div>
 
-            <!-- Total Amount -->
-            <div class="mb-3">
-                <label class="form-label">Total Amount</label>
-                <input type="number" step="0.01" name="total_amount" class="form-control" placeholder="Enter total amount" required>
-            </div>
+      <!-- Delivery Date -->
+      <div class="mb-3">
+        <label class="form-label">Delivery Date</label>
+        <input type="date" name="delivery_date" class="form-control" required
+               value="{% if is_edit and order.delivery_date %}{{ order.delivery_date|date:'Y-m-d' }}{% endif %}">
+      </div>
 
-            <!-- Received Amount -->
-            <div class="mb-3">
-                <label class="form-label">Received Amount</label>
-                <input type="number" step="0.01" name="received_amount" class="form-control" placeholder="Enter received amount" value="0">
-            </div>
+      <!-- Total Amount -->
+      <div class="mb-3">
+        <label class="form-label">Total Amount</label>
+        <input type="number" step="0.01" name="total_amount" class="form-control" placeholder="Enter total amount" required
+               value="{% if is_edit %}{{ order.total_amount }}{% endif %}">
+      </div>
 
-            <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary">Create Order</button>
-        </form>
-    </div>
+      <!-- Received Amount (always shown) -->
+      <div class="mb-3">
+        <label class="form-label">Received Amount</label>
+        <input type="number" step="0.01" name="received_amount" class="form-control" placeholder="Enter received amount"
+               value="{% if is_edit %}{{ order.received_amount }}{% else %}0{% endif %}">
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn btn-primary">
+        {% if is_edit %}Update Order{% else %}Create Order{% endif %}
+      </button>
+      <a href="{% url 'list_orders' %}" class="btn btn-light border ms-2">Cancel</a>
+    </form>
+  </div>
 </div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  (function () {
+    const form = document.getElementById("orderForm");
+    const isEdit = {% if is_edit %}true{% else %}false{% endif %};
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const title = isEdit ? 'Save changes to this order?' : 'Do you want to confirm the order?';
+      const text  = isEdit ? 'Please confirm you want to update this order.' : 'Please confirm that you want to create this order.';
+      const confirmText = isEdit ? 'Yes, update' : 'Yes, create';
+      const successTitle = isEdit ? '✅ Order updated!' : '🎉 Order created!';
+      const successText  = isEdit ? 'The order was successfully updated.' : 'The order was successfully created.';
+
+      Swal.fire({
+        title: title,
+        text: text,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: confirmText,
+        cancelButtonText: 'No, go back',
+        reverseButtons: true,
+        focusCancel: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            title: successTitle,
+            text: successText,
+            icon: 'success',
+            timer: 1800,
+            showConfirmButton: false,
+            willClose: () => {
+              form.submit();
+            }
+          });
+        }
+      });
+    });
+  })();
+</script>
 
 {% endblock %}
