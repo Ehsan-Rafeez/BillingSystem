@@ -4,14 +4,15 @@ from django.utils import timezone
 
 
 class Order(models.Model):
-    order_name = models.CharField(max_length=255)
+    order_date = models.DateField()
     customer_name = models.CharField(max_length=255)
     address = models.TextField()
     phone_number = models.CharField(max_length=20)
     location = models.CharField(max_length=255, blank=True, null=True)
     delivery_date = models.DateField()
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    received_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # default added
+    received_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)# default added
+    cnic_number = models.CharField(max_length=20, blank=False, null=False , default="0000000000000")
 
     def __str__(self):
         return f"{self.order_name} - {self.customer_name}"

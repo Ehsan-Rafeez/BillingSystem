@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+
 {% block title %}{% if is_edit %}Edit Order{% else %}Create Order{% endif %} - School Management System{% endblock %}
 {% block content %}
 
@@ -66,11 +67,12 @@
               <!-- Basics -->
               <h5 class="section-title mb-3"><i class="bi bi-box-seam me-2"></i>Order Details</h5>
               <div class="row g-3">
+                <!-- Replaced Order Name with Order Date -->
                 <div class="col-md-6">
-                  <label class="form-label required"><i class="bi bi-card-text"></i>Order Name</label>
-                  <input type="text" name="order_name" class="form-control" placeholder="e.g., Class Supplies - Grade 6" required
-                         value="{% if is_edit %}{{ order.order_name }}{% endif %}">
-                  <div class="helper mt-1">A short, clear title for this order.</div>
+                  <label class="form-label required"><i class="bi bi-calendar3"></i>Order Date</label>
+                  <input type="date" name="order_date" class="form-control" required
+                         value="{% if is_edit and order.order_date %}{{ order.order_date|date:'Y-m-d' }}{% endif %}">
+                  <div class="helper mt-1">Select the date when the order was placed.</div>
                 </div>
 
                 <div class="col-md-6">
@@ -103,6 +105,13 @@
                   <label class="form-label required"><i class="bi bi-calendar3"></i>Delivery Date</label>
                   <input type="date" name="delivery_date" class="form-control" required
                          value="{% if is_edit and order.delivery_date %}{{ order.delivery_date|date:'Y-m-d' }}{% endif %}">
+                </div>
+
+                <!-- CNIC Field next to Delivery Date -->
+                <div class="col-md-6">
+                  <label class="form-label required"><i class="bi bi-person-vcard"></i>CNIC</label>
+                  <input type="text" name="cnic" class="form-control" placeholder="CNIC" required
+                         value="{% if is_edit %}{{ order.cnic }}{% endif %}">
                 </div>
               </div>
 
@@ -251,7 +260,7 @@
       const text  = isEdit ? 'Please confirm you want to update this order.' : 'Please confirm that you want to create this order.';
       const confirmText = isEdit ? 'Yes, update' : 'Yes, create';
       const successTitle = isEdit ? '✅ Order updated!' : '🎉 Order created!';
-      const successText  = isEdit ? 'The order was successfully updated.' : 'The order was successfully created.';
+      const successText  = isEdit ? 'The order was successfully updated.' : 'The order was successfully created!';
 
       Swal.fire({
         title, text, icon: 'question',

@@ -143,7 +143,7 @@
   <div class="quick-actions d-flex flex-wrap gap-2 mb-4">
     <a href="{% url 'create_orders' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Create Order</a>
     <a href="{% url 'list_orders' %}" class="btn btn-outline-primary"><i class="bi bi-list-ul me-1"></i>All Orders</a>
-    <a href="{% url 'customer_list' %}" class="btn btn-outline-secondary"><i class="bi bi-person-lines-fill me-1"></i>Customers</a>
+    <a href="{% url 'list_customer' %}" class="btn btn-outline-secondary"><i class="bi bi-person-lines-fill me-1"></i>Customers</a>
     {# Add more shortcuts if needed #}
   </div>
 
@@ -222,7 +222,7 @@
             <a class="btn btn-outline-primary" href="{% url 'create_orders' %}">
               <i class="bi bi-plus-circle me-1"></i> New Order
             </a>
-            <a class="btn btn-outline-secondary" href="{% url 'customer_list' %}">
+            <a class="btn btn-outline-secondary" href="{% url 'list_customer' %}">
               <i class="bi bi-people me-1"></i> Customers
             </a>
             <a class="btn btn-outline-dark" href="{% url 'list_orders' %}">

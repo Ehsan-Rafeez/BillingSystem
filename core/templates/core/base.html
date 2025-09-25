@@ -39,7 +39,7 @@
         </button>
 
         <!-- Profile Dropdown (Top Right) -->
-        <div class="dropdown ms-auto">
+        {% comment %} <div class="dropdown ms-auto">
           <a
             href="#"
             class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
@@ -55,11 +55,11 @@
           </a>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
             <li><a class="dropdown-item" href="#">Account</a></li>
-            <li><a class="dropdown-item" href="#">Profile</a></li>
-            <li><hr class="dropdown-divider" /></li>
+            {% comment %} <li><a class="dropdown-item" href="#">Profile</a></li> {% endcomment %}
+            {% comment %} <li><hr class="dropdown-divider" /></li>
             <li><a class="dropdown-item" href="#">Logout</a></li>
           </ul>
-        </div>
+        </div> {% endcomment %}
       </div>
     </nav>
 

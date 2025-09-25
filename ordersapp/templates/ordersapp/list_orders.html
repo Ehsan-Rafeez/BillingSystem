@@ -134,9 +134,10 @@
         <thead class="table-dark">
           <tr>
             <th>ID</th>
-            <th>Order Name</th>
+            <th>Order Date</th>
             <th>Customer Name</th>
             <th>Phone</th>
+            <th>Cnic Number</th>
             <th>Delivery Date</th>
             <th>Total Amount</th>
             <th>Received Amount</th>
@@ -148,18 +149,20 @@
           {% for order in orders %}
           <tr
             data-id="{{ order.id }}"
-            data-order="{{ order.order_name|lower }}"
+            data-order="{{ order.order_date|lower }}"
             data-customer="{{ order.customer_name|lower }}"
             data-phone="{{ order.phone_number|lower }}"
+            date-cnic="{{ order.Cnic_Number|lower }}"
             data-date="{{ order.delivery_date|date:'Y-m-d' }}"
             data-total="{{ order.total_amount }}"
             data-received="{{ order.received_amount }}"
             data-due="{{ order.due_amount }}"
           >
             <td>{{ order.id }}</td>
-            <td>{{ order.order_name }}</td>
+            <td>{{ order.order_date }}</td>
             <td>{{ order.customer_name }}</td>
             <td>{{ order.phone_number }}</td>
+            <td>{{ order.cnic_number }}</td>
             <td>{{ order.delivery_date }}</td>
             <td>PKR {{ order.total_amount }}</td>
             <td>PKR {{ order.received_amount }}</td>
@@ -252,6 +255,7 @@
       const order   = tr.dataset.order || '';
       const cust    = tr.dataset.customer || '';
       const phone   = tr.dataset.phone || '';
+      const cnic    = tr.dataset.cnic || '';
       const dStr    = tr.dataset.date || '';
       const dVal    = dStr ? new Date(dStr) : null;
       const total   = toNum(tr.dataset.total);

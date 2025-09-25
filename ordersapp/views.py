@@ -1,5 +1,3 @@
-# ordersapp/views.py
-
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from datetime import datetime
 
@@ -64,13 +62,13 @@ def safe_date(val):
 @require_http_methods(["GET", "POST"])
 def create_order(request):
     if request.method == "POST":
-        order_name = (request.POST.get("order_name") or "").strip()
+        order_date = safe_date(request.POST.get("order_date"))  # Use order date instead of order name
         customer_name = (request.POST.get("customer_name") or "").strip()
         address = (request.POST.get("address") or "").strip()
         phone_number = clean_phone(request.POST.get("phone_number"))
         location = (request.POST.get("location") or "").strip()
         delivery_date = safe_date(request.POST.get("delivery_date"))
-
+        cnic_number = (request.POST.get("cnic_number") or "").strip()  # New field
         total_amount = safe_decimal(request.POST.get("total_amount"), "0.00")
         received_now = safe_decimal(request.POST.get("received_amount"), "0.00")
 
@@ -84,7 +82,7 @@ def create_order(request):
         try:
             with transaction.atomic():
                 order = Order.objects.create(
-                    order_name=order_name,
+                    order_date=order_date,  # Storing the order date
                     customer_name=customer_name,
                     address=address,
                     phone_number=phone_number,
@@ -92,6 +90,7 @@ def create_order(request):
                     delivery_date=delivery_date,
                     total_amount=total_amount,
                     received_amount=received_now,
+                    cnic_number=(request.POST.get("cnic") or "").strip(),  # New field
                 )
 
                 # If any cash received at creation time, log a Payment row too
@@ -162,7 +161,7 @@ def edit_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
 
     if request.method == "POST":
-        order.order_name = (request.POST.get("order_name") or "").strip()
+        order.order_date = safe_date(request.POST.get("order_date"))  # Editing the order date
         order.customer_name = (request.POST.get("customer_name") or "").strip()
         order.address = (request.POST.get("address") or "").strip()
         order.phone_number = clean_phone(request.POST.get("phone_number"))
