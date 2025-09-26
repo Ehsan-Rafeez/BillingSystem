@@ -1,6 +1,7 @@
 {% extends 'core/base.html' %}
 
 {% block title %}{% if is_edit %}Edit Order{% else %}Create Order{% endif %} - School Management System{% endblock %}
+
 {% block content %}
 
 <!-- Optional: Bootstrap Icons (nice little touches for labels) -->
@@ -67,11 +68,11 @@
               <!-- Basics -->
               <h5 class="section-title mb-3"><i class="bi bi-box-seam me-2"></i>Order Details</h5>
               <div class="row g-3">
-                <!-- Replaced Order Name with Order Date -->
+                <!-- Order Date Field (Automatically set to today's date) -->
                 <div class="col-md-6">
                   <label class="form-label required"><i class="bi bi-calendar3"></i>Order Date</label>
                   <input type="date" name="order_date" class="form-control" required
-                         value="{% if is_edit and order.order_date %}{{ order.order_date|date:'Y-m-d' }}{% endif %}">
+                         value="{% if is_edit and order.order_date %}{{ order.order_date|date:'Y-m-d' }}{% else %}{{ 'now'|date:'Y-m-d' }}{% endif %}">
                   <div class="helper mt-1">Select the date when the order was placed.</div>
                 </div>
 
