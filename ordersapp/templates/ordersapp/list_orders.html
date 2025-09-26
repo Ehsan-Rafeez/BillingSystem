@@ -44,10 +44,6 @@
   .stat.due    { border-left:5px solid #ef4444; }
 
   /* ===== Table ===== */
-  .table th, .table td {
-    white-space: nowrap; /* Prevent line breaks */
-  }
-
   .table thead th{ position:sticky; top:0; z-index:1; }
   .table-hover tbody tr:hover{ background:#f8fafc; }
   .badge-soft{
@@ -199,15 +195,13 @@
                   <i class="bi bi-pencil-square"></i><span class="action-label">Edit</span>
                 </a>
 
-                <!-- Delete form -->
                 <form method="post" action="{% url 'delete_order' order.id %}" class="d-inline delete-form">
                   {% csrf_token %}
                   <button type="button"
                           class="action-btn action-delete"
                           data-action="Delete Order"
                           data-type="delete"
-                          data-submit="closest-form"
-                          id="delete-btn-{{ order.id }}">
+                          data-submit="closest-form">
                     <i class="bi bi-trash3"></i><span class="action-label">Delete</span>
                   </button>
                 </form>
@@ -224,63 +218,149 @@
 </div>
 
 <script>
-// JavaScript for SweetAlert and form submission
-document.addEventListener('click', async function(e){
-  const btn = e.target.closest('.action-btn');
-  if (!btn) return;
-
-  e.preventDefault();
-
-  const type = btn.dataset.type; // add | edit | delete
-  const label = btn.dataset.action || 'Proceed';
-  const href = btn.dataset.href;
-  const isForm = btn.dataset.submit === 'closest-form';
-
-  let icon = 'question', confirmText = 'Yes';
-  let title = label, text = `Do you want to ${label.toLowerCase()}?`;
-  let confirmColor = '#0d6efd';
-
-  if (type === 'delete') {
-    icon = 'warning';
-    title = 'Delete this order?';
-    text = 'This will permanently delete the order. This action cannot be undone.';
-    confirmText = 'Yes, delete';
-    confirmColor = '#dc3545';
+(function(){
+  // ---------- Utils ----------
+  function toNum(x){ const n = parseFloat((x||'').toString().replace(/,/g,'')); return isFinite(n)?n:0; }
+  function fmt(n){ n=toNum(n); return 'PKR ' + n.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2}); }
+  function dateOk(d, from, to){
+    if(!d) return true;
+    if(from && d < from) return false;
+    if(to && d > to) return false;
+    return true;
   }
 
-  const result = await Swal.fire({
-    title, text, icon,
-    showCancelButton: true,
-    confirmButtonText: confirmText,
-    cancelButtonText: 'Cancel',
-    reverseButtons: true,
-    buttonsStyling: false,
-    customClass: {
-      popup: 'rounded-4',
-      confirmButton: 'btn',
-      cancelButton: 'btn btn-light border ms-2'
-    },
-    didOpen: (el) => {
-      const confirmBtn = el.querySelector('.swal2-confirm.btn');
-      confirmBtn.style.backgroundColor = confirmColor;
-      confirmBtn.style.color = '#fff';
+  // ---------- Elements ----------
+  const q       = document.getElementById('q');
+  const dateF   = document.getElementById('dateFrom');
+  const dateT   = document.getElementById('dateTo');
+  const dueSel  = document.getElementById('dueFilter');
+  const resetBtn= document.getElementById('resetBtn');
+  const tbody   = document.querySelector('#ordersTable tbody');
+
+  const stOrders= document.getElementById('statOrders');
+  const stTotal = document.getElementById('statTotal');
+  const stRece  = document.getElementById('statReceived');
+  const stDue   = document.getElementById('statDue');
+
+  // ---------- Filtering ----------
+  function applyFilters(){
+    const query = (q.value||'').trim().toLowerCase();
+    const f = dateF.value ? new Date(dateF.value) : null;
+    const t = dateT.value ? new Date(dateT.value) : null;
+    const mode = dueSel.value; // all | due | clear
+
+    let shown=0, sumTotal=0, sumRece=0, sumDue=0;
+
+    for(const tr of tbody.querySelectorAll('tr')){
+      const order   = tr.dataset.order || '';
+      const cust    = tr.dataset.customer || '';
+      const phone   = tr.dataset.phone || '';
+      const cnic    = tr.dataset.cnic || '';
+      const dStr    = tr.dataset.date || '';
+      const dVal    = dStr ? new Date(dStr) : null;
+      const total   = toNum(tr.dataset.total);
+      const rec     = toNum(tr.dataset.received);
+      const due     = toNum(tr.dataset.due);
+
+      const textHit = !query || order.includes(query) || cust.includes(query) || phone.includes(query);
+      const dateHit = dateOk(dVal, f, t);
+      const dueHit  = (mode==='all') || (mode==='due' && due>0) || (mode==='clear' && due<=0);
+
+      const visible = textHit && dateHit && dueHit;
+      tr.style.display = visible ? '' : 'none';
+
+      if(visible){
+        shown++;
+        sumTotal += total;
+        sumRece  += rec;
+        sumDue   += due;
+      }
     }
+
+    stOrders.textContent = shown;
+    stTotal.textContent  = fmt(sumTotal);
+    stRece.textContent   = fmt(sumRece);
+    stDue.textContent    = fmt(sumDue);
+  }
+
+  q.addEventListener('input', applyFilters);
+  dateF.addEventListener('change', applyFilters);
+  dateT.addEventListener('change', applyFilters);
+  dueSel.addEventListener('change', applyFilters);
+  resetBtn.addEventListener('click', () => {
+    q.value=''; dateF.value=''; dateT.value=''; dueSel.value='all'; applyFilters();
   });
 
-  if (result.isConfirmed) {
-    // Check if we are submitting a form (delete action)
-    if (isForm) {
-      btn.closest('form').submit(); // Submit the form if it's a delete action
-    } else if (href) {
-      await Swal.fire({
-        title: (type === 'delete' ? 'Deleting...' : 'Opening...'),
-        timer: 600, showConfirmButton: false,
-        didOpen: () => Swal.showLoading()
-      });
-      window.location.href = href;
-    }
-  }
-});
-</script>
+  // Initial stats calculation
+  applyFilters();
 
+  // ---------- SweetAlert confirmations ----------
+  document.addEventListener('click', async function(e){
+    const btn = e.target.closest('.action-btn');
+    if(!btn) return;
+
+    e.preventDefault();
+
+    const type  = btn.dataset.type;                   // add | edit | delete
+    const label = btn.dataset.action || 'Proceed';
+    const href  = btn.dataset.href;
+    const isForm= btn.dataset.submit === 'closest-form';
+
+    let icon = 'question', confirmText = 'Yes';
+    let title = label, text = `Do you want to ${label.toLowerCase()}?`;
+    let confirmColor = '#0d6efd';
+
+    if(type === 'delete'){
+      icon = 'warning';
+      title = 'Delete this order?';
+      text = 'This will permanently delete the order. This action cannot be undone.';
+      confirmText = 'Yes, delete';
+      confirmColor = '#dc3545';
+    } else if(type === 'edit'){
+      icon = 'question';
+      title = 'Edit this order?';
+      text = 'You will be taken to the edit form.';
+      confirmText = 'Proceed';
+    } else if(type === 'add'){
+      icon = 'question';
+      title = 'Add payment?';
+      text = 'You will be taken to the payment entry page.';
+      confirmText = 'Proceed';
+      confirmColor = '#198754';
+    }
+
+    const result = await Swal.fire({
+      title, text, icon,
+      showCancelButton: true,
+      confirmButtonText: confirmText,
+      cancelButtonText: 'Cancel',
+      reverseButtons: true,
+      buttonsStyling: false,
+      customClass: {
+        popup: 'rounded-4',
+        confirmButton: 'btn',
+        cancelButton: 'btn btn-light border ms-2'
+      },
+      didOpen: (el) => {
+        const confirmBtn = el.querySelector('.swal2-confirm.btn');
+        confirmBtn.style.backgroundColor = confirmColor;
+        confirmBtn.style.color = '#fff';
+      }
+    });
+
+    if(result.isConfirmed){
+      if(isForm){
+        btn.closest('form').submit();
+      } else if(href){
+        await Swal.fire({
+          title: (type==='delete'?'Deleting...':'Opening...'),
+          timer: 600, showConfirmButton: false,
+          didOpen: () => Swal.showLoading()
+        });
+        window.location.href = href;
+      }
+    }
+  });
+})();
+</script>
 {% endblock %}
