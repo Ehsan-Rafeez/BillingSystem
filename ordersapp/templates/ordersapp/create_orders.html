@@ -1,8 +1,8 @@
 {% extends 'core/base.html' %}
 
-{% block title %}{% if is_edit %}Edit Order{% else %}Create Order{% endif %} - School Management System{% endblock %}
-{% block content %}
+{% block title %}Create Order - School Management System{% endblock %}
 
+{% block content %}
 <!-- Optional: Bootstrap Icons (nice little touches for labels) -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -78,7 +78,7 @@
                 <div class="col-md-6">
                   <label class="form-label required"><i class="bi bi-person-vcard"></i>CNIC</label>
                   <input type="text" name="cnic" class="form-control" placeholder="CNIC" required
-                         value="{% if is_edit %}{{ order.cnic }}{% endif %}">
+                         value="{% if is_edit %}{{ order.cnic_number }}{% endif %}">
                 </div>
 
                 <!-- Customer Name -->
@@ -99,15 +99,6 @@
                   <label class="form-label required"><i class="bi bi-envelope"></i>Email</label>
                   <input type="email" name="email" class="form-control" placeholder="example@example.com" required
                          value="{% if is_edit %}{{ order.email }}{% endif %}">
-                </div>
-
-                <!-- Customer Type -->
-                <div class="col-md-6">
-                  <label class="form-label"><i class="bi bi-person-lines-fill"></i>Customer Type</label>
-                  <select name="customer_type" class="form-control">
-                    <option value="regular" {% if is_edit and order.customer_type == 'regular' %}selected{% endif %}>Regular</option>
-                    <option value="premium" {% if is_edit and order.customer_type == 'premium' %}selected{% endif %}>Premium</option>
-                  </select>
                 </div>
 
                 <!-- Phone Number -->

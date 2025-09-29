@@ -1,78 +1,142 @@
 {% extends 'core/base.html' %}
 {% block title %}Add Stock - Inventory{% endblock %}
+
 {% block content %}
-
 <div class="container mt-5 pt-4">
-    <h1 class="mb-4">Add New Stock Item</h1>
-    
-    <!-- Form to Add Stock -->
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        
-        <!-- Stock Name -->
-        <div class="mb-3">
-            <label for="stock_name" class="form-label">Stock Name</label>
-            <input type="text" class="form-control" id="stock_name" name="stock_name" required>
+    <div class="card shadow border-0">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">➕ Add Stock Entry</h4>
         </div>
-        
-        <!-- Category Selection -->
-        <div class="mb-3">
-            <label for="category" class="form-label">Category</label>
-            <select class="form-select" id="category" name="category" required>
-                <option value="buy">Buy</option>
-                <option value="rent">Rent</option>
-                <option value="order">Order</option>
-            </select>
-        </div>
-        
-        <!-- Quantity -->
-        <div class="mb-3">
-            <label for="quantity" class="form-label">Quantity</label>
-            <input type="number" class="form-control" id="quantity" name="quantity" required min="1">
-        </div>
+        <div class="card-body">
+            <form id="stockForm" method="POST">
+                {% csrf_token %}
+                <div class="row">
+                    <!-- Left Column: Stock Info -->
+                    <div class="col-md-6 border-end">
+                        <h5 class="text-primary mb-3">📦 Stock Information</h5>
 
-        <!-- Price per Unit (for Buy or Rent) -->
-        <div class="mb-3">
-            <label for="price_per_unit" class="form-label">Price per Unit (PKR)</label>
-            <input type="number" class="form-control" id="price_per_unit" name="price_per_unit" step="0.01" min="0" required>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Stock ID</label>
+                            <input type="text" class="form-control" value="Auto-generated on save" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Category</label>
+                            <select class="form-select" name="category" id="category" required>
+                                <option value="">-- Select --</option>
+                                <option value="buy">Buy</option>
+                                <option value="rent">Rent</option>
+                                <option value="order">Order</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Description</label>
+                            <textarea name="description" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Price (PKR)</label>
+                            <input type="number" name="price_per_unit" class="form-control" step="0.01" min="0" required>
+                        </div>
+
+                        <!-- Rent Section -->
+                        <div id="rent_section" style="display:none;">
+                            <h6 class="text-secondary mt-3">💰 Rent Details</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Rent Price</label>
+                                    <input type="number" name="rent_price" class="form-control" step="0.01" min="0">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Rent Type</label>
+                                    <select class="form-select" name="rent_type">
+                                        <option value="daily">Daily</option>
+                                        <option value="weekly">Weekly</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Rent Condition</label>
+                                <textarea name="rent_condition" class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Order Section -->
+                        <div id="order_section" style="display:none;">
+                            <h6 class="text-secondary mt-3">📅 Order Details</h6>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Order Date</label>
+                                    <input type="date" name="order_date" class="form-control">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Delivery Date</label>
+                                    <input type="date" name="delivery_date" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Customer Info -->
+                    <div class="col-md-6">
+                        <h5 class="text-primary mb-3">👤 Customer Information</h5>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Customer Name</label>
+                            <input type="text" name="customer_name" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">CNIC</label>
+                            <input type="text" name="customer_cnic" class="form-control" placeholder="35202-1234567-8">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Phone</label>
+                            <input type="text" name="customer_phone" class="form-control" placeholder="03001234567">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Address</label>
+                            <textarea name="customer_address" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'list_stock' %}" class="btn btn-light">⬅ Back to List</a>
+                    <button type="submit" class="btn btn-success">✅ Save</button>
+                </div>
+            </form>
         </div>
-        
-        <!-- Rent Duration (for Rent) -->
-        <div class="mb-3" id="rent_duration_container" style="display:none;">
-            <label for="rent_duration" class="form-label">Rent Duration (Months)</label>
-            <input type="number" class="form-control" id="rent_duration" name="rent_duration" min="1">
-        </div>
-        
-        <!-- Order Date (for Order) -->
-        <div class="mb-3" id="order_date_container" style="display:none;">
-            <label for="order_date" class="form-label">Order Date</label>
-            <input type="date" class="form-control" id="order_date" name="order_date">
-        </div>
-        
-        <!-- Submit Button -->
-        <div class="mb-3">
-            <button type="submit" class="btn btn-primary">Add Stock</button>
-            <a href="{% url 'list_stock' %}" class="btn btn-light ms-2">Cancel</a>
-        </div>
-    </form>
+    </div>
 </div>
 
-<!-- JavaScript to Toggle Fields -->
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Show the appropriate fields based on category selection
+    // Toggle Rent & Order Sections
     document.getElementById('category').addEventListener('change', function() {
-        var category = this.value;
-        if (category === 'rent') {
-            document.getElementById('rent_duration_container').style.display = 'block';
-            document.getElementById('order_date_container').style.display = 'none';
-        } else if (category === 'order') {
-            document.getElementById('order_date_container').style.display = 'block';
-            document.getElementById('rent_duration_container').style.display = 'none';
-        } else {
-            document.getElementById('rent_duration_container').style.display = 'none';
-            document.getElementById('order_date_container').style.display = 'none';
-        }
+        document.getElementById('rent_section').style.display = (this.value === 'rent') ? 'block' : 'none';
+        document.getElementById('order_section').style.display = (this.value === 'order') ? 'block' : 'none';
+    });
+
+    // Confirmation on Save
+    document.getElementById('stockForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // stop normal submit
+        Swal.fire({
+            title: 'Confirm Save',
+            text: "Are you sure you want to save this stock entry?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Save it!',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                e.target.submit(); // submit if confirmed
+            }
+        });
     });
 </script>
-
 {% endblock %}

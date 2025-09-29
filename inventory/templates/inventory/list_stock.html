@@ -1,9 +1,99 @@
 {% extends 'core/base.html' %}
-{% block title %}Stock List{% endblock %}
+{% block title %}Inventory Stock List{% endblock %}
 {% block content %}
 <div class="container mt-5 pt-4">
-  <h3 class="mb-3">Stock List</h3>
-  <p class="text-muted">Table of stock items will go here.</p>
-  <a href="{% url 'add_stock' %}" class="btn btn-primary">Add Stock</a>
+  <h3 class="mb-3"><i class="bi bi-box-seam"></i> Inventory Stock List</h3>
+
+  <!-- Search & Filter -->
+  <form method="GET" class="d-flex mb-3 gap-2">
+    <input type="text" name="q" class="form-control" placeholder="🔍 Search by customer, CNIC, phone or description...">
+    <select name="category" class="form-select">
+      <option value="">-- Filter by Category --</option>
+      <option value="buy">Buy</option>
+      <option value="rent">Rent</option>
+      <option value="order">Order</option>
+    </select>
+    <button type="submit" class="btn btn-dark">Apply</button>
+    <a href="{% url 'add_stock' %}" class="btn btn-primary ms-auto">+ Add Stock</a>
+  </form>
+
+  <!-- Table -->
+  <div class="table-responsive shadow-sm rounded">
+    <table class="table table-hover table-striped align-middle text-center">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>Stock ID</th>
+          <th>Customer Name</th>
+          <th>Category</th>
+          <th>CNIC</th>
+          <th>Phone</th>
+          <th>Description</th>
+          <th>Price (PKR)</th>
+          <th>Rent Price</th>
+          <th>Rent Condition</th>
+          <th>Rent Type</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for stock in stocks %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td><span class="badge bg-secondary">{{ stock.stock_code }}</span></td>
+          <td>{{ stock.customer_name|default:"None" }}</td>
+          <td>
+            {% if stock.item_type == "ASSET" %}
+              Rent
+            {% elif stock.item_type == "RAW" %}
+              Buy
+            {% elif stock.item_type == "CONS" %}
+              Order
+            {% else %}
+              None
+            {% endif %}
+          </td>
+          <td>{{ stock.customer_cnic|default:"None" }}</td>
+          <td>{{ stock.customer_phone|default:"None" }}</td>
+          <td>{{ stock.description|default:"-" }}</td>
+          <td>{{ stock.price }}</td>
+          
+          <!-- Rent Specific Fields -->
+          <td>
+            {% if stock.item_type == "ASSET" %}
+              {{ stock.rent_price|default:"None" }}
+            {% else %}
+              None
+            {% endif %}
+          </td>
+          <td>
+            {% if stock.item_type == "ASSET" %}
+              {{ stock.rent_condition|default:"None" }}
+            {% else %}
+              None
+            {% endif %}
+          </td>
+          <td>
+            {% if stock.item_type == "ASSET" %}
+              {{ stock.rent_type|default:"None" }}
+            {% else %}
+              None
+            {% endif %}
+          </td>
+
+          <!-- Actions -->
+          <td>
+            <a href="{% url 'edit_stock' stock.id %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil-square"></i></a>
+            <a href="{% url 'delete_stock' stock.id %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="12" class="text-center text-muted">No stock items found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% endblock %}

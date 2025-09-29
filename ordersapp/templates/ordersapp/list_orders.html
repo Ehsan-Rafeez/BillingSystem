@@ -1,5 +1,6 @@
-{% extends 'core/base.html' %} 
-{% block title %}Orders List - School Management System{% endblock %} 
+{% extends 'core/base.html' %}
+
+{% block title %}Orders List - School Management System{% endblock %}
 
 {% block content %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
@@ -137,6 +138,9 @@
             <th>Order Date</th>
             <th>Customer Name</th>
             <th>Phone</th>
+            {% comment %} <th>Customer Type</th> <!-- Added Customer Type --> {% endcomment %}
+            <th>Email</th> <!-- Added Email -->
+            <th>Address</th> <!-- Added Address -->
             <th>Cnic Number</th>
             <th>Delivery Date</th>
             <th>Total Amount</th>
@@ -152,7 +156,10 @@
             data-order="{{ order.order_date|lower }}"
             data-customer="{{ order.customer_name|lower }}"
             data-phone="{{ order.phone_number|lower }}"
-            date-cnic="{{ order.Cnic_Number|lower }}"
+            {% comment %} data-customer_type="{{ order.customer_type|lower }}" {% endcomment %}
+            data-email="{{ order.email|lower }}"
+            data-address="{{ order.address|lower }}"
+            data-cnic="{{ order.Cnic_Number|lower }}"
             data-date="{{ order.delivery_date|date:'Y-m-d' }}"
             data-total="{{ order.total_amount }}"
             data-received="{{ order.received_amount }}"
@@ -162,6 +169,9 @@
             <td>{{ order.order_date }}</td>
             <td>{{ order.customer_name }}</td>
             <td>{{ order.phone_number }}</td>
+            {% comment %} <td>{{ order.customer_type }}</td> <!-- Display Customer Type --> {% endcomment %}
+            <td>{{ order.email }}</td> <!-- Display Email -->
+            <td>{{ order.address }}</td> <!-- Display Address -->
             <td>{{ order.cnic_number }}</td>
             <td>{{ order.delivery_date }}</td>
             <td>PKR {{ order.total_amount }}</td>
@@ -209,7 +219,7 @@
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="9" class="text-center">No orders found.</td></tr>
+          <tr><td colspan="13" class="text-center">No orders found.</td></tr>
           {% endfor %}
         </tbody>
       </table>
