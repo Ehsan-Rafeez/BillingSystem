@@ -1,142 +1,174 @@
 {% extends 'core/base.html' %}
-{% block title %}Add Stock - Inventory{% endblock %}
-
+{% block title %}{% if stock %}Edit Stock{% else %}Add Stock{% endif %} - Inventory{% endblock %}
 {% block content %}
-<div class="container mt-5 pt-4">
-    <div class="card shadow border-0">
-        <div class="card-header bg-dark text-white">
-            <h4 class="mb-0">➕ Add Stock Entry</h4>
-        </div>
-        <div class="card-body">
-            <form id="stockForm" method="POST">
-                {% csrf_token %}
-                <div class="row">
-                    <!-- Left Column: Stock Info -->
-                    <div class="col-md-6 border-end">
-                        <h5 class="text-primary mb-3">📦 Stock Information</h5>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Stock ID</label>
-                            <input type="text" class="form-control" value="Auto-generated on save" readonly>
-                        </div>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Category</label>
-                            <select class="form-select" name="category" id="category" required>
-                                <option value="">-- Select --</option>
-                                <option value="buy">Buy</option>
-                                <option value="rent">Rent</option>
-                                <option value="order">Order</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Description</label>
-                            <textarea name="description" class="form-control" rows="3"></textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Price (PKR)</label>
-                            <input type="number" name="price_per_unit" class="form-control" step="0.01" min="0" required>
-                        </div>
-
-                        <!-- Rent Section -->
-                        <div id="rent_section" style="display:none;">
-                            <h6 class="text-secondary mt-3">💰 Rent Details</h6>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Rent Price</label>
-                                    <input type="number" name="rent_price" class="form-control" step="0.01" min="0">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Rent Type</label>
-                                    <select class="form-select" name="rent_type">
-                                        <option value="daily">Daily</option>
-                                        <option value="weekly">Weekly</option>
-                                        <option value="monthly">Monthly</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Rent Condition</label>
-                                <textarea name="rent_condition" class="form-control" rows="2"></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Order Section -->
-                        <div id="order_section" style="display:none;">
-                            <h6 class="text-secondary mt-3">📅 Order Details</h6>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Order Date</label>
-                                    <input type="date" name="order_date" class="form-control">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Delivery Date</label>
-                                    <input type="date" name="delivery_date" class="form-control">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Column: Customer Info -->
-                    <div class="col-md-6">
-                        <h5 class="text-primary mb-3">👤 Customer Information</h5>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Customer Name</label>
-                            <input type="text" name="customer_name" class="form-control">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">CNIC</label>
-                            <input type="text" name="customer_cnic" class="form-control" placeholder="35202-1234567-8">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Phone</label>
-                            <input type="text" name="customer_phone" class="form-control" placeholder="03001234567">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Address</label>
-                            <textarea name="customer_address" class="form-control" rows="2"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Buttons -->
-                <div class="d-flex justify-content-between mt-4">
-                    <a href="{% url 'list_stock' %}" class="btn btn-light">⬅ Back to List</a>
-                    <button type="submit" class="btn btn-success">✅ Save</button>
-                </div>
-            </form>
-        </div>
+<div class="container mt-5">
+  <div class="card shadow-lg border-0">
+    <div class="card-header bg-primary text-white">
+      <h4 class="mb-0">
+        <i class="bi bi-box-seam me-2"></i>
+        {% if stock %}Edit Stock{% else %}Add New Stock{% endif %}
+      </h4>
     </div>
+    <div class="card-body p-4">
+
+      <form method="POST">
+        {% csrf_token %}
+
+        <!-- Stock Information -->
+        <h5 class="mb-3 text-primary">📦 Stock Information</h5>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Item Name</label>
+            <input type="text" name="name" class="form-control" placeholder="Enter item name"
+                   value="{{ stock.name|default:'' }}" required>
+          </div>
+
+          <!-- Grocery Categories -->
+          <div class="col-md-3">
+            <label class="form-label">Category</label>
+            <select name="category" class="form-select" required>
+              <option value="">Select Category</option>
+              {% for key, value in categories %}
+                <option value="{{ key }}" {% if stock and stock.category == key %}selected{% endif %}>{{ value }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">Quantity</label>
+            <input type="number" name="quantity" class="form-control" min="1"
+                   value="{{ stock.quantity|default:1 }}" required>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Unit Price (PKR)</label>
+            <input type="number" name="price_per_unit" class="form-control" step="0.01"
+                   value="{{ stock.price_per_unit|default:'' }}" required>
+          </div>
+
+          <!-- UOM Dropdown -->
+          <div class="col-md-4">
+            <label class="form-label">Unit of Measure</label>
+            <select name="uom" class="form-select" required>
+              <option value="">Select Unit</option>
+              {% for u in uoms %}
+                <option value="{{ u.id }}" {% if stock and stock.uom.id == u.id %}selected{% endif %}>
+                  {{ u.name }} ({{ u.abbreviation }})
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label">Description</label>
+            <input type="text" name="description" class="form-control"
+                   value="{{ stock.description|default:'' }}" placeholder="Optional">
+          </div>
+        </div>
+
+        <hr>
+
+        <!-- Supplier Information -->
+        <h5 class="mb-3 text-success">🏪 Supplier Information</h5>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Supplier Name</label>
+            <input type="text" name="supplier_name" class="form-control"
+                   value="{{ stock.supplier_name|default:'' }}" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Phone</label>
+            <input type="text" name="supplier_phone" class="form-control"
+                   value="{{ stock.supplier_phone|default:'' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">CNIC</label>
+            <input type="text" name="supplier_cnic" class="form-control"
+                   value="{{ stock.supplier_cnic|default:'' }}">
+          </div>
+          <div class="col-md-12">
+            <label class="form-label">Address</label>
+            <textarea name="supplier_address" rows="2" class="form-control">{{ stock.supplier_address|default:'' }}</textarea>
+          </div>
+        </div>
+
+        <hr>
+
+        <!-- Payment Info -->
+        <h5 class="mb-3 text-warning">💰 Payment Information</h5>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Total Amount (PKR)</label>
+            <input type="number" name="total_amount" class="form-control" step="0.01"
+                   value="{{ stock.total_amount|default:'' }}" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Paid Amount (PKR)</label>
+            <input type="number" name="paid_amount" class="form-control" step="0.01"
+                   value="{{ stock.paid_amount|default:'' }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Payment Method</label>
+          <select name="payment_method" class="form-select">
+            <option value="cash">Cash</option>
+            <option value="bank">Bank Transfer</option>
+            <option value="credit">Credit</option>
+          </select>
+
+          </div>
+        </div>
+
+        <hr>
+
+        <!-- Rent Fields -->
+        <div id="rent-fields" style="display:none;">
+          <h5 class="mb-3 text-danger">📑 Rent Details</h5>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Rent Price</label>
+              <input type="number" name="rent_price" class="form-control" step="0.01"
+                     value="{{ stock.rent_price|default:'' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Rent Type</label>
+              <select name="rent_type" class="form-select">
+                <option value="">Select</option>
+                <option value="daily" {% if stock and stock.rent_type == "daily" %}selected{% endif %}>Daily</option>
+                <option value="weekly" {% if stock and stock.rent_type == "weekly" %}selected{% endif %}>Weekly</option>
+                <option value="monthly" {% if stock and stock.rent_type == "monthly" %}selected{% endif %}>Monthly</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Rent Condition</label>
+              <input type="text" name="rent_condition" class="form-control"
+                     value="{{ stock.rent_condition|default:'' }}" placeholder="e.g. Return in good condition">
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 text-end">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save me-1"></i> {% if stock %}Update Stock{% else %}Save Stock{% endif %}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
 </div>
 
-<!-- SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Toggle Rent & Order Sections
-    document.getElementById('category').addEventListener('change', function() {
-        document.getElementById('rent_section').style.display = (this.value === 'rent') ? 'block' : 'none';
-        document.getElementById('order_section').style.display = (this.value === 'order') ? 'block' : 'none';
-    });
-
-    // Confirmation on Save
-    document.getElementById('stockForm').addEventListener('submit', function(e) {
-        e.preventDefault(); // stop normal submit
-        Swal.fire({
-            title: 'Confirm Save',
-            text: "Are you sure you want to save this stock entry?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, Save it!',
-            cancelButtonText: 'Cancel',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                e.target.submit(); // submit if confirmed
-            }
-        });
-    });
+  // Show rent fields dynamically
+  const categorySelect = document.querySelector("select[name='category']");
+  const rentFields = document.getElementById("rent-fields");
+  function toggleRentFields() {
+    rentFields.style.display = categorySelect.value === "rent" ? "block" : "none";
+  }
+  categorySelect.addEventListener("change", toggleRentFields);
+  toggleRentFields();  // run on load for edit mode
 </script>
+
 {% endblock %}

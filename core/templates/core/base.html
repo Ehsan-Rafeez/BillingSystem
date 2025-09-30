@@ -21,7 +21,10 @@
     <!-- Navbar -->
     <nav class="navbar navbar-dark bg-dark fixed-top">
       <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center" href="{% url 'list_orders' %}">
+        <a
+          class="navbar-brand d-flex align-items-center"
+          href="{% url 'list_orders' %}"
+        >
           <span class="brand-text me-2 fw-bold">Billing System</span>
           <img
             src="{% static 'images/icons8-school-48.png' %}"
@@ -39,7 +42,8 @@
         </button>
 
         <!-- Profile Dropdown (Top Right) -->
-        {% comment %} <div class="dropdown ms-auto">
+        {% comment %}
+        <div class="dropdown ms-auto">
           <a
             href="#"
             class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
@@ -53,13 +57,19 @@
               class="profile-avatar me-2"
             />
           </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+          <ul
+            class="dropdown-menu dropdown-menu-end"
+            aria-labelledby="profileDropdown"
+          >
             <li><a class="dropdown-item" href="#">Account</a></li>
-            {% comment %} <li><a class="dropdown-item" href="#">Profile</a></li> {% endcomment %}
-            {% comment %} <li><hr class="dropdown-divider" /></li>
+            {% comment %}
+            <li><a class="dropdown-item" href="#">Profile</a></li>
+            {% endcomment %} {% comment %}
+            <li><hr class="dropdown-divider" /></li>
             <li><a class="dropdown-item" href="#">Logout</a></li>
           </ul>
-        </div> {% endcomment %}
+        </div>
+        {% endcomment %}
       </div>
     </nav>
 
@@ -78,8 +88,16 @@
         Customers
       </a>
       <ul class="collapse list-unstyled ps-3" id="profilesSubmenu">
-        <li><a class="dropdown-item" href="{% url 'create_customer' %}">Add Customer</a></li>
-        <li><a class="dropdown-item" href="{% url 'list_customer' %}">List Customers</a></li>
+        <li>
+          <a class="dropdown-item" href="{% url 'create_customer' %}"
+            >Add Customer</a
+          >
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'list_customer' %}"
+            >List Customers</a
+          >
+        </li>
       </ul>
 
       <!-- Orders Collapsible -->
@@ -93,23 +111,39 @@
         Orders
       </a>
       <ul class="collapse list-unstyled ps-3" id="ordersSubmenu">
-        <li><a class="dropdown-item" href="{% url 'create_orders' %}">Add Order</a></li>
-        <li><a class="dropdown-item" href="{% url 'list_orders' %}">List Orders</a></li>
-        <li><a class="dropdown-item" href="{% url 'payment_entry_select' %}">Payment Entry</a></li>
+        <li>
+          <a class="dropdown-item" href="{% url 'create_orders' %}"
+            >Add Order</a
+          >
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'list_orders' %}"
+            >List Orders</a
+          >
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'payment_entry_select' %}"
+            >Payment Entry</a
+          >
+        </li>
       </ul>
       <!-- Inventory Collapsible -->
-        <a
+      <a
         href="#inventorySubmenu"
         data-bs-toggle="collapse"
-        aria-expanded="true"
+        aria-expanded="false"
         class="dropdown-toggle text-white d-block px-3 py-2"
-        id="sidebarOrdersDropdown"
+        id="sidebarInventoryDropdown"
       >
         Inventory
       </a>
       <ul class="collapse list-unstyled ps-3" id="inventorySubmenu">
-        <li><a class="dropdown-item" href="{% url 'add_stock' %}">Add Stock</a></li>
-        <li><a class="dropdown-item" href="{% url 'list_stock' %}">List Stock</a></li>
+        <li>
+          <a class="dropdown-item" href="{% url 'add_stock' %}">Add Stock</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'list_stock' %}">List Stock</a>
+        </li>
       </ul>
 
       <!-- Logout -->
@@ -118,9 +152,7 @@
 
     <!-- Main Content -->
     <div class="main-content">
-      <div class="container mt-5 pt-4">
-        {% block content %}{% endblock %}
-      </div>
+      <div class="container mt-5 pt-4">{% block content %}{% endblock %}</div>
     </div>
 
     <!-- Bootstrap JS -->
@@ -128,9 +160,11 @@
 
     <!-- Sidebar Toggle Script -->
     <script>
-      document.getElementById("sidebarToggle").addEventListener("click", function () {
-        document.getElementById("sidebarMenu").classList.toggle("active");
-      });
+      document
+        .getElementById("sidebarToggle")
+        .addEventListener("click", function () {
+          document.getElementById("sidebarMenu").classList.toggle("active");
+        });
     </script>
 
     {% block extra_scripts %}{% endblock %}

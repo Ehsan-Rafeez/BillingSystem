@@ -114,6 +114,16 @@
             <input type="date" class="form-control" name="payment_date" id="payment_date" required>
           </div>
 
+          <!-- New Entry Type field -->
+          <div class="col-md-4">
+            <label class="form-label">Entry Type</label>
+            <select name="entry_type" class="form-select" id="entry_type" required>
+              <option value="">-- Select --</option>
+              <option value="Customer">Customer</option>
+              <option value="Supplier">Supplier</option>
+            </select>
+          </div>
+
           <div class="col-md-4">
             <label class="form-label">Payment Method</label>
             <select name="payment_method" class="form-select" id="payment_method" required>
@@ -159,12 +169,12 @@
   // Server values for live math
   const total      = parseFloat('{{ order.total_amount|floatformat:2 }}'.replace(/,/g,'')) || 0;
   const receivedSF = parseFloat('{{ order.received_amount|floatformat:2 }}'.replace(/,/g,'')) || 0;
-  const dueInitial = Math.max(total - receivedSF, 0);
 
   const amountInput = document.getElementById('amount');
   const dueEl       = document.getElementById('dueNow');
   const recEl       = document.getElementById('receivedSoFar');
   const methodSel   = document.getElementById('payment_method');
+  const entryType   = document.getElementById('entry_type');
   const fieldCard   = document.getElementById('field_card');
   const fieldBank   = document.getElementById('field_bank');
   const paymentDate = document.getElementById('payment_date');
@@ -183,14 +193,11 @@
     return 'PKR ' + num.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2});
   }
 
-  function clamp(val, min, max){ return Math.min(Math.max(val, min), max); }
-
   // Live update remaining due as user types
   function recompute(){
     let a = parseFloat(amountInput.value) || 0;
     if(a < 0) a = 0;
 
-    // Cap to remaining due
     const remaining = Math.max(total - receivedSF, 0);
     if(a > remaining){ a = remaining; amountInput.value = remaining ? remaining.toFixed(2) : '0.00'; }
 
@@ -232,6 +239,10 @@
       Swal.fire({icon:'warning', title:'Select method', text:'Please select a payment method.'});
       return;
     }
+    if(!entryType.value){
+      Swal.fire({icon:'warning', title:'Select entry type', text:'Please select Customer or Supplier.'});
+      return;
+    }
 
     const newReceived = receivedSF + amount;
     const newDue = Math.max(total - newReceived, 0);
@@ -240,6 +251,7 @@
       title: 'Confirm payment?',
       html: `
         <div class="text-start">
+          <div><strong>Entry Type:</strong> ${entryType.value}</div>
           <div><strong>Customer:</strong> {{ order.customer_name|escape }}</div>
           <div><strong>Order Total:</strong> ${formatPKR(total)}</div>
           <div><strong>Received so far:</strong> ${formatPKR(receivedSF)}</div>
@@ -262,7 +274,6 @@
       }
     }).then((res) => {
       if(res.isConfirmed){
-        // Optional success flash
         Swal.fire({
           title: 'Saving…',
           timer: 700,

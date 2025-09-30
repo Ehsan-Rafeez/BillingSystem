@@ -1,61 +1,89 @@
-from decimal import Decimal
 from django.db import models
-from core.models import TimeStampedModel
+from decimal import Decimal
 
 
-class InventoryItem(TimeStampedModel):
-    """Model representing an item in the inventory (Buy, Rent, Order)."""
+class UnitOfMeasure(models.Model):
+    """Table for Units of Measure (kg, g, L, pcs, etc.)."""
+    name = models.CharField(max_length=50, unique=True)
+    abbreviation = models.CharField(max_length=10, unique=True)
 
-    # Categories
-    RAW = "RAW"           # Buy
-    ASSET = "ASSET"       # Rent
-    ORDER = "ORDER"       # Order
-    TYPES = [
-        (RAW, "Buy"),
-        (ASSET, "Rent"),
-        (ORDER, "Order"),
+    def __str__(self):
+        return f"{self.name} ({self.abbreviation})"
+
+    class Meta:
+        verbose_name_plural = "Units of Measure"
+
+
+class InventoryItem(models.Model):
+    """Model representing an item in the inventory."""
+
+    # ✅ Grocery Inventory Categories
+    CATEGORY_CHOICES = [
+        ("produce", "Fruits & Vegetables"),
+        ("dairy", "Dairy & Eggs"),
+        ("meat", "Meat & Poultry"),
+        ("bakery", "Bakery & Breads"),
+        ("pantry", "Pantry Staples"),
+        ("beverages", "Beverages"),
+        ("snacks", "Snacks & Packaged Foods"),
+        ("frozen", "Frozen Foods"),
+        ("canned", "Canned & Jarred Goods"),
+        ("health", "Health & Personal Care"),
+        ("household", "Household Essentials"),
+        ("baby", "Baby Products"),
+        ("pet", "Pet Food & Supplies"),
     ]
 
-    # Auto stock code (e.g., STK-0001)
-    stock_code = models.CharField(max_length=20, unique=True, editable=False)
+    PAYMENT_METHODS = [
+        ("cash", "Cash"),
+        ("bank", "Bank Transfer"),
+        ("credit", "Credit"),
+    ]
 
-    # Customer Information
-    customer_name = models.CharField(max_length=255, blank=True, null=True)
-    customer_cnic = models.CharField(max_length=20, blank=True, null=True)
-    customer_phone = models.CharField(max_length=20, blank=True, null=True)
-    customer_address = models.TextField(blank=True, null=True)
+    RENT_TYPES = [
+        ("daily", "Daily"),
+        ("weekly", "Weekly"),
+        ("monthly", "Monthly"),
+    ]
 
-    # Item Information
-    description = models.TextField(blank=True)
-    items_taken = models.TextField(blank=True)  # auto mirror of description
-    item_type = models.CharField(max_length=20, choices=TYPES, default=RAW)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    # Stock Info
+    stock_code = models.CharField(max_length=20, unique=True, editable=False)  # Auto generated
+    name = models.CharField(max_length=255)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    quantity = models.PositiveIntegerField(default=1)
+    price_per_unit = models.DecimalField(max_digits=12, decimal_places=2)
+    uom = models.ForeignKey(UnitOfMeasure, on_delete=models.PROTECT)
+    description = models.TextField(blank=True, null=True)
 
-    # Rent-specific fields
-    rent_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    RENT_TYPES = [("daily", "Daily"), ("weekly", "Weekly"), ("monthly", "Monthly")]
+    # Supplier Info
+    supplier_name = models.CharField(max_length=255)
+    supplier_phone = models.CharField(max_length=20, blank=True, null=True)
+    supplier_cnic = models.CharField(max_length=20, blank=True, null=True)
+    supplier_address = models.TextField(blank=True, null=True)
+
+    # Payment Info
+    total_amount = models.DecimalField(max_digits=14, decimal_places=2)
+    paid_amount = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0.00"))
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default="cash")
+
+    # Rent Info (optional – if needed for rental items like freezers, trolleys etc.)
+    rent_price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
     rent_type = models.CharField(max_length=20, choices=RENT_TYPES, blank=True, null=True)
     rent_condition = models.TextField(blank=True, null=True)
-    is_returned = models.BooleanField(default=False)
 
+    # Meta
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # Save hook
     def save(self, *args, **kwargs):
-        # Generate stock code if not exists
+        """Auto-generate stock code if not exists."""
         if not self.stock_code:
             last_id = InventoryItem.objects.count() + 1
             self.stock_code = f"STK-{last_id:04d}"
-
-        # Auto copy description to items_taken
-        if self.description and not self.items_taken:
-            self.items_taken = self.description
-
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.stock_code}"
+        return f"{self.stock_code} - {self.name}"
 
     class Meta:
         verbose_name_plural = "Inventory Items"
