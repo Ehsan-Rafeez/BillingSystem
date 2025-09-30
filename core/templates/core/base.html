@@ -146,6 +146,22 @@
         </li>
       </ul>
 
+      <!-- Suppliers Collapsible -->
+      <a
+        href="#suppliersSubmenu"
+        data-bs-toggle="collapse"
+        aria-expanded="true"
+        class="dropdown-toggle text-white d-block px-3 py-2"
+        id="sidebarSuppliersDropdown"
+      >
+        Suppliers
+      </a>
+      <ul class="collapse list-unstyled ps-3" id="suppliersSubmenu">
+        <li><a class="dropdown-item" href="{% url 'suppliers:supplier_list' %}">List Suppliers</a></li>
+        <li><a class="dropdown-item" href="{% url 'suppliers:supplier_create' %}">Add Supplier</a></li>
+        <li><a class="dropdown-item" href="{% url 'suppliers:purchase_order_list' %}">Purchase Orders</a></li>
+      </ul>
+
       <!-- Logout -->
       <a href="#" class="px-3 py-2 d-block">Logout</a>
     </div>

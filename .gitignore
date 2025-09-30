@@ -104,3 +104,4 @@ celerybeat.pid
 # --- Temp ---
 tmp/
 *.tmp
+.env
