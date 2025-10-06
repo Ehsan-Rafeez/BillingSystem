@@ -31,8 +31,10 @@
             <label class="form-label">Category</label>
             <select name="category" class="form-select" required>
               <option value="">Select Category</option>
-              {% for key, value in categories %}
-                <option value="{{ key }}" {% if stock and stock.category == key %}selected{% endif %}>{{ value }}</option>
+              {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if stock and stock.category.id == cat.id %}selected{% endif %}>
+                  {{ cat.name }}
+                </option>
               {% endfor %}
             </select>
           </div>
@@ -112,12 +114,11 @@
           </div>
           <div class="col-md-4">
             <label class="form-label">Payment Method</label>
-          <select name="payment_method" class="form-select">
-            <option value="cash">Cash</option>
-            <option value="bank">Bank Transfer</option>
-            <option value="credit">Credit</option>
-          </select>
-
+            <select name="payment_method" class="form-select">
+              <option value="cash" {% if stock and stock.payment_method == "cash" %}selected{% endif %}>Cash</option>
+              <option value="bank" {% if stock and stock.payment_method == "bank" %}selected{% endif %}>Bank Transfer</option>
+              <option value="credit" {% if stock and stock.payment_method == "credit" %}selected{% endif %}>Credit</option>
+            </select>
           </div>
         </div>
 
@@ -167,8 +168,10 @@
   function toggleRentFields() {
     rentFields.style.display = categorySelect.value === "rent" ? "block" : "none";
   }
-  categorySelect.addEventListener("change", toggleRentFields);
-  toggleRentFields();  // run on load for edit mode
+  if (categorySelect) {
+    categorySelect.addEventListener("change", toggleRentFields);
+    toggleRentFields();  // run on load for edit mode
+  }
 </script>
 
 {% endblock %}

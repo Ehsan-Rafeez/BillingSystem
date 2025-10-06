@@ -1,0 +1,95 @@
+{% extends 'core/base.html' %}
+{% block title %}Inventory List{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-lg border-0">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h4 class="mb-0"><i class="bi bi-box-seam me-2"></i> Inventory Items</h4>
+      <a href="{% url 'add_inventory' %}" class="btn btn-light btn-sm">
+        <i class="bi bi-plus-circle me-1"></i> Add Inventory
+      </a>
+    </div>
+    <div class="card-body p-4">
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Quantity</th>
+              <th>UOM</th>
+              <th>Unit Price</th>
+              <th>Total Amount</th>
+              <th>Paid</th>
+              <th>Remaining</th>
+              <th>Status</th>
+              <th>Supplier</th>
+              <th>Payment Method</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ item.stock_code }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.category.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.uom.abbreviation }}</td>
+                <td>PKR {{ item.price_per_unit }}</td>
+                <td>PKR {{ item.total_amount }}</td>
+                <td>PKR {{ item.paid_amount }}</td>
+                <td>PKR {{ item.remaining }}</td>
+                <td>
+                  {% if item.paid_amount >= item.total_amount %}
+                    <span class="badge bg-success">Paid</span>
+                  {% elif item.paid_amount == 0 %}
+                    <span class="badge bg-danger">Unpaid</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                  {% endif %}
+                </td>
+                <td>{{ item.supplier_name }}</td>
+                <td>{{ item.get_payment_method_display }}</td>
+                <td>{{ item.created_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                  <div class="btn-group" role="group">
+                    <a href="{% url 'edit_stock' item.id %}" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-pencil-square"></i> Edit
+                    </a>
+                    <a href="{% url 'delete_stock' item.id %}" 
+                       onclick="return confirm('Are you sure you want to delete this item?');" 
+                       class="btn btn-sm btn-outline-danger">
+                      <i class="bi bi-trash"></i> Delete
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="15" class="text-center text-muted">No inventory items found.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

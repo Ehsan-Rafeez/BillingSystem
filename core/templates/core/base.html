@@ -138,12 +138,49 @@
         Inventory
       </a>
       <ul class="collapse list-unstyled ps-3" id="inventorySubmenu">
-        <li>
-          <a class="dropdown-item" href="{% url 'add_stock' %}">Add Stock</a>
-        </li>
-        <li>
-          <a class="dropdown-item" href="{% url 'list_stock' %}">List Stock</a>
-        </li>
+        <!-- Stock Nested Dropdown -->
+        <a
+          href="#stockSubmenu"
+          data-bs-toggle="collapse"
+          aria-expanded="false"
+          class="dropdown-toggle text-white d-block px-3 py-2"
+          id="sidebarStockDropdown"
+        >
+          Stock
+        </a>
+        <ul class="collapse list-unstyled ps-3" id="stockSubmenu">
+          <li>
+            <a class="dropdown-item" href="{% url 'add_stock' %}">Add Stock</a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="{% url 'list_stock' %}"
+              >List Stock</a
+            >
+          </li>
+        </ul>
+
+        <!-- Inventory Items Nested Dropdown -->
+        <a
+          href="#inventoryItemsSubmenu"
+          data-bs-toggle="collapse"
+          aria-expanded="false"
+          class="dropdown-toggle text-white d-block px-3 py-2"
+          id="sidebarInventoryItemsDropdown"
+        >
+          Inventory Items
+        </a>
+        <ul class="collapse list-unstyled ps-3" id="inventoryItemsSubmenu">
+          <li>
+            <a class="dropdown-item" href="{% url 'add_inventory' %}"
+              >Add Inventory</a
+            >
+          </li>
+          <li>
+            <a class="dropdown-item" href="{% url 'list_inventory' %}"
+              >List Inventory</a
+            >
+          </li>
+        </ul>
       </ul>
 
       <!-- Suppliers Collapsible -->
@@ -157,9 +194,23 @@
         Suppliers
       </a>
       <ul class="collapse list-unstyled ps-3" id="suppliersSubmenu">
-        <li><a class="dropdown-item" href="{% url 'suppliers:supplier_list' %}">List Suppliers</a></li>
-        <li><a class="dropdown-item" href="{% url 'suppliers:supplier_create' %}">Add Supplier</a></li>
-        <li><a class="dropdown-item" href="{% url 'suppliers:purchase_order_list' %}">Purchase Orders</a></li>
+        <li>
+          <a class="dropdown-item" href="{% url 'suppliers:supplier_list' %}"
+            >List Suppliers</a
+          >
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'suppliers:supplier_create' %}"
+            >Add Supplier</a
+          >
+        </li>
+        <li>
+          <a
+            class="dropdown-item"
+            href="{% url 'suppliers:purchase_order_list' %}"
+            >Purchase Orders</a
+          >
+        </li>
       </ul>
 
       <!-- Logout -->

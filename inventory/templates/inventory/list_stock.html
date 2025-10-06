@@ -54,24 +54,24 @@
           <tr>
             <td>{{ stock.stock_code }}</td>
             <td>{{ stock.name }}</td>
-            <td>{{ stock.get_category_display }}</td>
+            <td>{{ stock.category }}</td>
             <td>{{ stock.quantity }}</td>
             <td>{{ stock.uom.abbreviation }}</td>
             <td>PKR {{ stock.total_amount|floatformat:2 }}</td>
             <td>PKR {{ stock.paid_amount|floatformat:2 }}</td>
-            <td>PKR {{ stock.total_amount|floatformat:2|add:"-stock.paid_amount"|floatformat:2 }}</td>
+            <td>PKR {{ stock.remaining_amount|floatformat:2 }}</td>
 
             <td>
-              {% if stock.paid_amount >= stock.total_amount %}
+              {% if stock.status == "Paid" %}
                 <span class="badge bg-success">Paid</span>
-              {% elif stock.paid_amount > 0 %}
+              {% elif stock.status == "Pending" %}
                 <span class="badge bg-warning text-dark">Pending</span>
               {% else %}
                 <span class="badge bg-danger">Unpaid</span>
               {% endif %}
             </td>
 
-            <td>{{ stock.get_payment_method_display }}</td>
+            <td>{{ stock.payment_method }}</td>
             <td>{{ stock.supplier_name }}</td>
 
             <td>
@@ -90,7 +90,7 @@
               </form>
 
               <!-- ✅ Add Payment Inline -->
-              {% if stock.paid_amount < stock.total_amount %}
+              {% if stock.status != "Paid" %}
               <form method="post" action="{% url 'add_payment' stock.id %}" style="display:inline;">
                 {% csrf_token %}
                 <input type="number" step="0.01" min="0" name="extra_payment"

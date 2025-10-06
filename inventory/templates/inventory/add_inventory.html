@@ -1,0 +1,97 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block title %}Add Inventory Item{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+
+      <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header bg-primary text-white d-flex align-items-center">
+          <i class="bi bi-clipboard-plus me-2 fs-4"></i>
+          <h4 class="mb-0">Add Inventory Item</h4>
+        </div>
+
+        <div class="card-body p-4">
+
+          <!-- Show Messages -->
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+
+          <form method="POST">
+            {% csrf_token %}
+
+            <!-- Item Name -->
+            <div class="mb-3">
+              <label class="form-label">Item Name <span class="text-danger">*</span></label>
+              <input type="text" name="name" class="form-control" placeholder="Enter item name" required>
+            </div>
+
+            <!-- Category (from DB) -->
+            <div class="mb-3">
+              <label class="form-label">Category <span class="text-danger">*</span></label>
+              <select name="category" class="form-select" required>
+                <option value="">-- Select Category --</option>
+                {% for cat in categories %}
+                  <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% empty %}
+                  <option disabled>No categories found (please add in admin)</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Quantity & UOM -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Quantity <span class="text-danger">*</span></label>
+                <input type="number" name="quantity" min="1" value="1" class="form-control" placeholder="0" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Unit of Measure <span class="text-danger">*</span></label>
+                <select name="uom" class="form-select" required>
+                  {% for uom in uoms %}
+                    <option value="{{ uom.id }}">{{ uom.name }} ({{ uom.abbreviation }})</option>
+                  {% empty %}
+                    <option disabled>No UOM found (please add in admin)</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Price -->
+            <div class="mb-3">
+              <label class="form-label">Price per Unit (PKR) <span class="text-danger">*</span></label>
+              <input type="number" step="0.01" name="price_per_unit" class="form-control" placeholder="0.00" required>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <textarea name="description" rows="3" class="form-control" placeholder="Optional details about the item..."></textarea>
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-flex justify-content-end">
+              <a href="{% url 'list_inventory' %}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-x-circle me-1"></i> Cancel
+              </a>
+              <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-circle me-1"></i> Save Item
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
