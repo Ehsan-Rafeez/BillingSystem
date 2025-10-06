@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 from django.contrib import messages
 from decimal import Decimal
+from collections import defaultdict
 from .models import InventoryItem, UnitOfMeasure, InventoryCategory
 
 
@@ -283,3 +284,24 @@ def list_inventory(request):
     """List all inventory items"""
     items = InventoryItem.objects.all().order_by("-created_at")
     return render(request, "inventory/list_inventory.html", {"items": items})
+
+
+# ---------------- LIVE STOCK VIEW ---------------- #
+
+def live_stock(request):
+    """
+    Show combined live stock (Stock + Inventory).
+    If same item name exists, quantities will be summed.
+    """
+    combined = defaultdict(int)
+
+    # Collect all inventory items (both stock and inventory)
+    items = InventoryItem.objects.all()
+
+    for item in items:
+        combined[item.name] += item.quantity
+
+    # Convert dict into list of dicts for template
+    live_items = [{"name": k, "quantity": v} for k, v in combined.items()]
+
+    return render(request, "inventory/live_stock.html", {"live_items": live_items})

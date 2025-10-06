@@ -40,36 +40,6 @@
         >
           ☰
         </button>
-
-        <!-- Profile Dropdown (Top Right) -->
-        {% comment %}
-        <div class="dropdown ms-auto">
-          <a
-            href="#"
-            class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
-            id="profileDropdown"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            <img
-              src="{% static 'images/icons8-test-account-50.png' %}"
-              alt="User Profile"
-              class="profile-avatar me-2"
-            />
-          </a>
-          <ul
-            class="dropdown-menu dropdown-menu-end"
-            aria-labelledby="profileDropdown"
-          >
-            <li><a class="dropdown-item" href="#">Account</a></li>
-            {% comment %}
-            <li><a class="dropdown-item" href="#">Profile</a></li>
-            {% endcomment %} {% comment %}
-            <li><hr class="dropdown-divider" /></li>
-            <li><a class="dropdown-item" href="#">Logout</a></li>
-          </ul>
-        </div>
-        {% endcomment %}
       </div>
     </nav>
 
@@ -89,14 +59,10 @@
       </a>
       <ul class="collapse list-unstyled ps-3" id="profilesSubmenu">
         <li>
-          <a class="dropdown-item" href="{% url 'create_customer' %}"
-            >Add Customer</a
-          >
+          <a class="dropdown-item" href="{% url 'create_customer' %}">Add Customer</a>
         </li>
         <li>
-          <a class="dropdown-item" href="{% url 'list_customer' %}"
-            >List Customers</a
-          >
+          <a class="dropdown-item" href="{% url 'list_customer' %}">List Customers</a>
         </li>
       </ul>
 
@@ -112,21 +78,16 @@
       </a>
       <ul class="collapse list-unstyled ps-3" id="ordersSubmenu">
         <li>
-          <a class="dropdown-item" href="{% url 'create_orders' %}"
-            >Add Order</a
-          >
+          <a class="dropdown-item" href="{% url 'create_orders' %}">Add Order</a>
         </li>
         <li>
-          <a class="dropdown-item" href="{% url 'list_orders' %}"
-            >List Orders</a
-          >
+          <a class="dropdown-item" href="{% url 'list_orders' %}">List Orders</a>
         </li>
         <li>
-          <a class="dropdown-item" href="{% url 'payment_entry_select' %}"
-            >Payment Entry</a
-          >
+          <a class="dropdown-item" href="{% url 'payment_entry_select' %}">Payment Entry</a>
         </li>
       </ul>
+
       <!-- Inventory Collapsible -->
       <a
         href="#inventorySubmenu"
@@ -138,6 +99,7 @@
         Inventory
       </a>
       <ul class="collapse list-unstyled ps-3" id="inventorySubmenu">
+
         <!-- Stock Nested Dropdown -->
         <a
           href="#stockSubmenu"
@@ -153,9 +115,10 @@
             <a class="dropdown-item" href="{% url 'add_stock' %}">Add Stock</a>
           </li>
           <li>
-            <a class="dropdown-item" href="{% url 'list_stock' %}"
-              >List Stock</a
-            >
+            <a class="dropdown-item" href="{% url 'list_stock' %}">List Stock</a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="{% url 'live_stock' %}">Live Stock</a>
           </li>
         </ul>
 
@@ -171,14 +134,10 @@
         </a>
         <ul class="collapse list-unstyled ps-3" id="inventoryItemsSubmenu">
           <li>
-            <a class="dropdown-item" href="{% url 'add_inventory' %}"
-              >Add Inventory</a
-            >
+            <a class="dropdown-item" href="{% url 'add_inventory' %}">Add Inventory</a>
           </li>
           <li>
-            <a class="dropdown-item" href="{% url 'list_inventory' %}"
-              >List Inventory</a
-            >
+            <a class="dropdown-item" href="{% url 'list_inventory' %}">List Inventory</a>
           </li>
         </ul>
       </ul>
@@ -195,21 +154,13 @@
       </a>
       <ul class="collapse list-unstyled ps-3" id="suppliersSubmenu">
         <li>
-          <a class="dropdown-item" href="{% url 'suppliers:supplier_list' %}"
-            >List Suppliers</a
-          >
+          <a class="dropdown-item" href="{% url 'suppliers:supplier_list' %}">List Suppliers</a>
         </li>
         <li>
-          <a class="dropdown-item" href="{% url 'suppliers:supplier_create' %}"
-            >Add Supplier</a
-          >
+          <a class="dropdown-item" href="{% url 'suppliers:supplier_create' %}">Add Supplier</a>
         </li>
         <li>
-          <a
-            class="dropdown-item"
-            href="{% url 'suppliers:purchase_order_list' %}"
-            >Purchase Orders</a
-          >
+          <a class="dropdown-item" href="{% url 'suppliers:purchase_order_list' %}">Purchase Orders</a>
         </li>
       </ul>
 

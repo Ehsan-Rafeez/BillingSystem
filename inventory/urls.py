@@ -6,6 +6,7 @@ urlpatterns = [
     path("list/", views.list_stock, name="list_stock"),
     path("add_inventory/", views.add_inventory, name="add_inventory"),
     path("list_inventory/", views.list_inventory, name="list_inventory"),
+    path("live_stock/", views.live_stock, name="live_stock"),
 
     # 🔹 New Routes
     path("edit/<int:pk>/", views.edit_stock, name="edit_stock"),
