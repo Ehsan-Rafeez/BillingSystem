@@ -59,3 +59,4 @@ class PurchaseOrderItemForm(forms.ModelForm):
             'unit_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.0001'}),
         }
 
+
