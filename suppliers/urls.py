@@ -18,3 +18,4 @@ urlpatterns = [
     path('purchase-orders/<int:po_id>/', views.purchase_order_detail, name='purchase_order_detail'),
 ]
 
+
