@@ -6,8 +6,10 @@ from django.db import transaction
 from django.db.models import F
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_http_methods
+from django.utils import timezone
 
-from .models import Order, Payment
+from .models import Order, Payment, OrderItem
+from inventory.models import InventoryItem
 
 
 # -----------------------
@@ -61,6 +63,7 @@ def safe_date(val):
 # -----------------------
 @require_http_methods(["GET", "POST"])
 def create_order(request):
+    stock_items = InventoryItem.objects.all().order_by("name")
     if request.method == "POST":
         order_date = safe_date(request.POST.get("order_date"))  # Use order date instead of order name
         customer_name = (request.POST.get("customer_name") or "").strip()
@@ -68,14 +71,32 @@ def create_order(request):
         phone_number = clean_phone(request.POST.get("phone_number"))
         location = (request.POST.get("location") or "").strip()
         delivery_date = safe_date(request.POST.get("delivery_date"))
-        cnic_number = (request.POST.get("cnic_number") or "").strip()  # New field
+        cnic_number = (request.POST.get("cnic") or "").strip()
         total_amount = safe_decimal(request.POST.get("total_amount"), "0.00")
         received_now = safe_decimal(request.POST.get("received_amount"), "0.00")
+
+        # Parse item selections
+        item_ids = request.POST.getlist("item_ids[]")
+        quantities = request.POST.getlist("quantities[]")
+        parsed_rows = []
+        for i, iid in enumerate(item_ids or []):
+            try:
+                q = int((quantities[i] if i < len(quantities) else "0") or "0")
+            except (ValueError, TypeError):
+                q = 0
+            if not iid or q <= 0:
+                continue
+            parsed_rows.append((int(iid), q))
 
         # Basic validation
         if total_amount < 0:
             messages.error(request, "Total amount cannot be negative.")
-            return render(request, "ordersapp/create_orders.html", {"is_edit": False})
+            return render(request, "ordersapp/create_orders.html", {"is_edit": False, "stock_items": stock_items})
+
+        # Must have at least one item
+        if not parsed_rows:
+            messages.error(request, "Please add at least one item with quantity.")
+            return render(request, "ordersapp/create_orders.html", {"is_edit": False, "stock_items": stock_items})
 
         received_now = clamp_received(total_amount, received_now)
 
@@ -90,8 +111,23 @@ def create_order(request):
                     delivery_date=delivery_date,
                     total_amount=total_amount,
                     received_amount=received_now,
-                    cnic_number=(request.POST.get("cnic") or "").strip(),  # New field
+                    cnic_number=cnic_number,
                 )
+
+                # Validate stock availability and create order items
+                # Note: we only deduct on delivery, but we can prevent overbooking here
+                inv_map = {obj.id: obj for obj in InventoryItem.objects.filter(id__in=[iid for iid, _ in parsed_rows])}
+                for iid, q in parsed_rows:
+                    inv = inv_map.get(iid)
+                    if not inv:
+                        raise ValueError("Invalid inventory item selected.")
+                    if q > inv.quantity:
+                        raise ValueError(f"Insufficient stock for {inv.name}. Requested {q}, available {inv.quantity}.")
+
+                OrderItem.objects.bulk_create([
+                    OrderItem(order=order, inventory_item_id=iid, quantity=q)
+                    for iid, q in parsed_rows
+                ])
 
                 # If any cash received at creation time, log a Payment row too
                 if received_now > 0:
@@ -102,10 +138,10 @@ def create_order(request):
 
         except Exception as e:
             messages.error(request, f"Could not create order: {e}")
-            return render(request, "ordersapp/create_orders.html", {"is_edit": False})
+            return render(request, "ordersapp/create_orders.html", {"is_edit": False, "stock_items": stock_items})
 
     # GET
-    return render(request, "ordersapp/create_orders.html", {"is_edit": False})
+    return render(request, "ordersapp/create_orders.html", {"is_edit": False, "stock_items": stock_items})
 
 
 # -----------------------
@@ -214,3 +250,45 @@ def delete_order(request, order_id):
 
     # GET (confirm page)
     return render(request, "ordersapp/delete_order.html", {"order": order})
+
+
+# -----------------------
+# Deliver Order (deduct stock)
+# -----------------------
+@require_http_methods(["POST"]) 
+def deliver_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    if order.status == Order.STATUS_DELIVERED:
+        messages.info(request, "Order already delivered.")
+        return redirect("list_orders")
+
+    items = list(order.items.select_related("inventory_item").all())
+    if not items:
+        messages.error(request, "No items found for this order. Add items before delivering.")
+        return redirect("list_orders")
+
+    try:
+        with transaction.atomic():
+            # Validate stock availability first
+            for oi in items:
+                inv: InventoryItem = oi.inventory_item
+                if oi.quantity > inv.quantity:
+                    raise ValueError(f"Insufficient stock for {inv.name}. Needed {oi.quantity}, available {inv.quantity}.")
+
+            # Deduct stock
+            for oi in items:
+                InventoryItem.objects.filter(id=oi.inventory_item_id).update(
+                    quantity=F("quantity") - oi.quantity
+                )
+
+            # Mark order delivered
+            order.status = Order.STATUS_DELIVERED
+            order.delivered_at = timezone.now()
+            order.save(update_fields=["status", "delivered_at"])
+
+        messages.success(request, "✅ Order delivered and stock updated.")
+    except Exception as e:
+        messages.error(request, f"Could not deliver order: {e}")
+
+    return redirect("list_orders")

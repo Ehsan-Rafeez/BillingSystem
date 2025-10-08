@@ -9,6 +9,7 @@ urlpatterns = [
     path('create/', views.supplier_create, name='supplier_create'),
     path('<int:supplier_id>/', views.supplier_detail, name='supplier_detail'),
     path('<int:supplier_id>/edit/', views.supplier_edit, name='supplier_edit'),
+    path('<int:supplier_id>/delete/', views.supplier_delete, name='supplier_delete'),
     path('<int:supplier_id>/payment/', views.payment_create, name='payment_create'),
     
     # Purchase Order URLs

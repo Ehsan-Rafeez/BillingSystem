@@ -12,4 +12,5 @@ urlpatterns = [
     # Order actions
     path('edit_order/<int:order_id>/', views.edit_order, name='edit_order'),
     path('delete_order/<int:order_id>/', views.delete_order, name='delete_order'),
+    path('deliver_order/<int:order_id>/', views.deliver_order, name='deliver_order'),
 ]

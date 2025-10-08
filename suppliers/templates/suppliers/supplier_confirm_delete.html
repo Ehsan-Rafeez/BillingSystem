@@ -1,0 +1,24 @@
+{% extends 'core/base.html' %}
+{% block title %}Delete Supplier{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0">Delete Supplier</h5>
+    </div>
+    <div class="card-body">
+      <p>Are you sure you want to {% if has_refs %}<strong>deactivate</strong>{% else %}<strong>delete</strong>{% endif %} supplier <strong>{{ supplier.name }}</strong>?</p>
+      {% if has_refs %}
+      <p class="text-muted">This supplier is referenced by purchase orders/payments, so it will be marked inactive instead of being removed.</p>
+      {% endif %}
+      <form method="post">
+        {% csrf_token %}
+        <a href="{% url 'suppliers:supplier_list' %}" class="btn btn-light border">Cancel</a>
+        <button type="submit" class="btn btn-danger">Confirm</button>
+      </form>
+    </div>
+  </div>
+  </div>
+{% endblock %}
+
+

@@ -78,8 +78,13 @@
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label">Supplier Name</label>
-            <input type="text" name="supplier_name" class="form-control"
-                   value="{{ stock.supplier_name|default:'' }}" required>
+            <input list="supplierList" name="supplier_name" id="supplierNameInput" class="form-control"
+                   value="{{ stock.supplier_name|default:'' }}" placeholder="Type to search existing suppliers" required>
+            <datalist id="supplierList">
+              {% for s in suppliers %}
+                <option value="{{ s.name }}" data-phone="{{ s.phone }}" data-cnic="{{ s.tax_number }}" data-address="{{ s.address|default:''|escape }}">{{ s.supplier_id }} - {{ s.name }}</option>
+              {% endfor %}
+            </datalist>
           </div>
           <div class="col-md-3">
             <label class="form-label">Phone</label>
@@ -172,6 +177,27 @@
     categorySelect.addEventListener("change", toggleRentFields);
     toggleRentFields();  // run on load for edit mode
   }
+
+  // Autofill supplier details when selecting from list
+  const supInput = document.getElementById('supplierNameInput');
+  const phoneInput = document.querySelector("input[name='supplier_phone']");
+  const cnicInput = document.querySelector("input[name='supplier_cnic']");
+  const addrInput = document.querySelector("textarea[name='supplier_address']");
+  function tryFillSupplier(){
+    const val = (supInput.value||'').trim();
+    if(!val) return;
+    const options = document.getElementById('supplierList')?.options || [];
+    for(const opt of options){
+      if(opt.value === val){
+        if(opt.dataset.phone && !phoneInput.value) phoneInput.value = opt.dataset.phone;
+        if(opt.dataset.cnic && !cnicInput.value) cnicInput.value = opt.dataset.cnic;
+        if(opt.dataset.address && !addrInput.value) addrInput.value = opt.dataset.address;
+        break;
+      }
+    }
+  }
+  supInput?.addEventListener('change', tryFillSupplier);
+  supInput?.addEventListener('blur', tryFillSupplier);
 </script>
 
 {% endblock %}

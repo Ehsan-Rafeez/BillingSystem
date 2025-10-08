@@ -4,6 +4,7 @@ from django.contrib import messages
 from decimal import Decimal
 from collections import defaultdict
 from .models import InventoryItem, UnitOfMeasure, InventoryCategory
+from suppliers.models import Supplier
 
 
 # ---- Utility: Add default Units of Measure if none exist ----
@@ -51,6 +52,7 @@ def add_stock(request):
     load_default_categories()  # ensure Categories exist
     uoms = UnitOfMeasure.objects.all().order_by("name")
     categories = InventoryCategory.objects.all().order_by("name")
+    suppliers = Supplier.objects.filter(is_active=True).order_by("name")
 
     if request.method == "POST":
         try:
@@ -105,6 +107,7 @@ def add_stock(request):
     return render(request, "inventory/add_stock.html", {
         "uoms": uoms,
         "categories": categories,
+        "suppliers": suppliers,
         "is_edit": False,
     })
 
@@ -172,6 +175,7 @@ def edit_stock(request, pk):
     load_default_categories()
     uoms = UnitOfMeasure.objects.all().order_by("name")
     categories = InventoryCategory.objects.all().order_by("name")
+    suppliers = Supplier.objects.filter(is_active=True).order_by("name")
 
     if request.method == "POST":
         try:
@@ -207,6 +211,7 @@ def edit_stock(request, pk):
         "stock": stock,
         "uoms": uoms,
         "categories": categories,
+        "suppliers": suppliers,
         "is_edit": True,
     })
 

@@ -146,6 +146,7 @@
             <th>Total Amount</th>
             <th>Received Amount</th>
             <th>Due Amount</th>
+            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -188,6 +189,13 @@
               {% endwith %}
             </td>
             <td>
+              {% if order.status == 'DELIVERED' %}
+                <span class="badge-soft badge-due-0">Delivered</span>
+              {% else %}
+                <span class="badge-soft badge-due-mid">Pending</span>
+              {% endif %}
+            </td>
+            <td>
               <div class="actions-wrap">
                 <a href="{% url 'payment_entry' order.id %}"
                    class="action-btn action-add"
@@ -204,6 +212,19 @@
                    data-href="{% url 'edit_order' order.id %}">
                   <i class="bi bi-pencil-square"></i><span class="action-label">Edit</span>
                 </a>
+
+                {% if order.status != 'DELIVERED' %}
+                <form method="post" action="{% url 'deliver_order' order.id %}" class="d-inline deliver-form">
+                  {% csrf_token %}
+                  <button type="button"
+                          class="action-btn action-add"
+                          data-action="Deliver Order"
+                          data-type="deliver"
+                          data-submit="closest-form">
+                    <i class="bi bi-truck"></i><span class="action-label">Deliver</span>
+                  </button>
+                </form>
+                {% endif %}
 
                 <form method="post" action="{% url 'delete_order' order.id %}" class="d-inline delete-form">
                   {% csrf_token %}
@@ -337,6 +358,12 @@
       text = 'You will be taken to the payment entry page.';
       confirmText = 'Proceed';
       confirmColor = '#198754';
+    } else if(type === 'deliver'){
+      icon = 'question';
+      title = 'Mark as delivered?';
+      text = 'This will deduct stock for all order items.';
+      confirmText = 'Yes, deliver';
+      confirmColor = '#16a34a';
     }
 
     const result = await Swal.fire({

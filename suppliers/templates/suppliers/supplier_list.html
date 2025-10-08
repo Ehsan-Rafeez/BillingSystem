@@ -59,6 +59,12 @@
                                             <a href="{% url 'suppliers:supplier_edit' supplier.id %}" class="btn btn-sm btn-warning">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
+                                            <form method="post" action="{% url 'suppliers:supplier_delete' supplier.id %}" class="d-inline" onsubmit="return confirm('Are you sure?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
                                     {% endfor %}

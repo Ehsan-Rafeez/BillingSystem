@@ -41,7 +41,7 @@ def supplier_create(request):
         if form.is_valid():
             supplier = form.save()
             messages.success(request, f'Supplier "{supplier.name}" created successfully!')
-            return redirect('supplier_detail', supplier_id=supplier.id)
+            return redirect('suppliers:supplier_detail', supplier_id=supplier.id)
     else:
         form = SupplierForm()
     
@@ -60,7 +60,7 @@ def supplier_edit(request, supplier_id):
         if form.is_valid():
             form.save()
             messages.success(request, f'Supplier "{supplier.name}" updated successfully!')
-            return redirect('supplier_detail', supplier_id=supplier.id)
+            return redirect('suppliers:supplier_detail', supplier_id=supplier.id)
     else:
         form = SupplierForm(instance=supplier)
     
@@ -82,7 +82,7 @@ def payment_create(request, supplier_id):
             payment.supplier = supplier
             payment.save()
             messages.success(request, f'Payment of {payment.amount} recorded successfully!')
-            return redirect('supplier_detail', supplier_id=supplier.id)
+            return redirect('suppliers:supplier_detail', supplier_id=supplier.id)
     else:
         form = SupplierPaymentForm()
     
@@ -119,11 +119,31 @@ def purchase_order_create(request):
         if form.is_valid():
             purchase_order = form.save()
             messages.success(request, f'Purchase Order {purchase_order.order_number} created successfully!')
-            return redirect('purchase_order_detail', po_id=purchase_order.id)
+            return redirect('suppliers:purchase_order_detail', po_id=purchase_order.id)
     else:
         form = PurchaseOrderForm()
     
     return render(request, 'suppliers/purchase_order_form.html', {
         'form': form,
         'title': 'Create New Purchase Order'
+    })
+
+
+def supplier_delete(request, supplier_id):
+    """Delete a supplier (soft delete by deactivating if referenced)."""
+    supplier = get_object_or_404(Supplier, id=supplier_id)
+    has_refs = supplier.purchase_orders.exists() or supplier.payments.exists()
+    if request.method == 'POST':
+        if has_refs:
+            supplier.is_active = False
+            supplier.save(update_fields=['is_active'])
+            messages.success(request, f'Supplier "{supplier.name}" deactivated (in use).')
+        else:
+            supplier.delete()
+            messages.success(request, f'Supplier "{supplier.name}" deleted successfully!')
+        return redirect('suppliers:supplier_list')
+
+    return render(request, 'suppliers/supplier_confirm_delete.html', {
+        'supplier': supplier,
+        'has_refs': has_refs
     })

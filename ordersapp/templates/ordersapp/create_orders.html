@@ -96,8 +96,8 @@
 
                 <!-- Email -->
                 <div class="col-md-6">
-                  <label class="form-label required"><i class="bi bi-envelope"></i>Email</label>
-                  <input type="email" name="email" class="form-control" placeholder="example@example.com" required
+                  <label class="form-label"><i class="bi bi-envelope"></i>Email (optional)</label>
+                  <input type="email" name="email" class="form-control" placeholder="example@example.com"
                          value="{% if is_edit %}{{ order.email }}{% endif %}">
                 </div>
 
@@ -124,6 +124,42 @@
                   <input type="date" name="delivery_date" class="form-control" required
                          value="{% if is_edit and order.delivery_date %}{{ order.delivery_date|date:'Y-m-d' }}{% endif %}">
                 </div>
+              </div>
+
+              <hr class="my-4">
+
+              <!-- Items -->
+              <h5 class="section-title mb-3"><i class="bi bi-bag-plus me-2"></i>Items</h5>
+              <div class="row g-3 align-items-end">
+                <div class="col-md-7">
+                  <label class="form-label required"><i class="bi bi-box"></i>Select Item</label>
+                  <select class="form-select" id="itemSelect">
+                    <option value="">-- choose stock item --</option>
+                    {% for s in stock_items %}
+                      <option value="{{ s.id }}" data-name="{{ s.name }}" data-avail="{{ s.quantity }}">{{ s.name }} (avail: {{ s.quantity }})</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label required"><i class="bi bi-123"></i>Quantity</label>
+                  <input type="number" id="itemQty" class="form-control" min="1" value="1">
+                </div>
+                <div class="col-md-2">
+                  <button type="button" id="addItemBtn" class="btn btn-outline-primary w-100"><i class="bi bi-plus-circle"></i> Add</button>
+                </div>
+              </div>
+
+              <div class="table-responsive mt-3">
+                <table class="table table-bordered align-middle" id="itemsTable">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width:55%">Item</th>
+                      <th style="width:20%">Qty</th>
+                      <th style="width:25%">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
               </div>
 
               <hr class="my-4">
@@ -232,6 +268,61 @@
     });
     recalc();
 
+    // ---- Items UI ----
+    const itemSelect = document.getElementById('itemSelect');
+    const itemQty = document.getElementById('itemQty');
+    const addItemBtn = document.getElementById('addItemBtn');
+    const itemsTbody = document.querySelector('#itemsTable tbody');
+
+    function addRow(id, name, qty, avail){
+      // if already exists, increase qty
+      const existing = itemsTbody.querySelector(`tr[data-id="${id}"]`);
+      if(existing){
+        const qtyInput = existing.querySelector('input[name="quantities[]"]');
+        qtyInput.value = parseInt(qtyInput.value||'0') + qty;
+        existing.querySelector('.qty-label').textContent = qtyInput.value;
+        return;
+      }
+      const tr = document.createElement('tr');
+      tr.dataset.id = id;
+      tr.dataset.avail = String(avail||'');
+      tr.innerHTML = `
+        <td>
+          ${name} <small class="text-muted">(avail: ${avail ?? ''})</small>
+          <input type="hidden" name="item_ids[]" value="${id}">
+        </td>
+        <td>
+          <span class="qty-label">${qty}</span>
+          <input type="hidden" name="quantities[]" value="${qty}">
+        </td>
+        <td>
+          <button type="button" class="btn btn-sm btn-outline-danger remove">Remove</button>
+        </td>
+      `;
+      itemsTbody.appendChild(tr);
+    }
+
+    addItemBtn?.addEventListener('click', () => {
+      const opt = itemSelect.options[itemSelect.selectedIndex];
+      const id = itemSelect.value;
+      const name = opt?.dataset?.name;
+      const avail = parseInt(opt?.dataset?.avail||'0');
+      const qty = parseInt(itemQty.value||'0');
+      if(!id){ Swal.fire({icon:'warning', title:'Select an item first'}); return; }
+      if(qty<=0){ Swal.fire({icon:'warning', title:'Quantity must be > 0'}); return; }
+      if(avail && qty>avail){
+        Swal.fire({icon:'error', title:'Insufficient stock', text:`Available: ${avail}`});
+        return;
+      }
+      addRow(id, name, qty, avail);
+    });
+
+    itemsTbody.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.remove');
+      if(!btn) return;
+      btn.closest('tr')?.remove();
+    });
+
     // Basic client checks before SweetAlert
     function validate() {
       const t = parseFloat(totalInput.value) || 0;
@@ -267,6 +358,28 @@
       }
 
       // Extra checks
+      // validate items vs available stock
+      const insufficient = [];
+      for(const tr of itemsTbody.children){
+        const qty = parseInt(tr.querySelector('input[name="quantities[]"]').value||'0');
+        const avail = parseInt(tr.dataset.avail||'0');
+        const name = tr.querySelector('td').textContent.trim();
+        if(avail && qty>avail){
+          insufficient.push(`${name} (need ${qty}, avail ${avail})`);
+        }
+      }
+      if(insufficient.length){
+        Swal.fire({
+          icon: 'error',
+          title: 'Insufficient stock',
+          html: '<div style="text-align:left">' + insufficient.map(s=>`- ${s}`).join('<br>') + '</div>'
+        });
+        return;
+      }
+      if(itemsTbody.children.length === 0){
+        Swal.fire({ icon: 'error', title: 'No items', text: 'Add at least one item.' });
+        return;
+      }
       if (!(await validate())) return;
 
       const title = isEdit ? 'Save changes to this order?' : 'Do you want to confirm the order?';
