@@ -6,17 +6,22 @@
 
 /* Sidebar hidden by default */
 .sidebar-menu {
-  height: 100%;
+  height: calc(100vh - 56px);
   width: 220px;
   position: fixed;
-  top: 56px;
-  /* Height of navbar */
-  left: -220px;
+  top: 56px; /* Height of navbar */
+  left: 0;
   background-color: #343a40;
   color: white;
-  transition: 0.3s;
+  transition: transform 0.3s ease;
   padding-top: 20px;
   z-index: 999;
+  overflow-y: auto;
+  transform: translateX(0);
+}
+
+body.sidebar-collapsed .sidebar-menu {
+  transform: translateX(-220px);
 }
 
 .sidebar-menu a {
@@ -28,11 +33,6 @@
 
 .sidebar-menu a:hover {
   background-color: #495057;
-}
-
-/* Sidebar active (visible) */
-.sidebar-menu.active {
-  left: 0;
 }
 
 /* ✅ Brand Logo styling */
@@ -60,9 +60,13 @@
 
 /* Content */
 .main-content {
-  transition: margin-left 0.8s;
+  transition: margin-left 0.3s ease;
   padding: 50px;
-  margin-left: 180px;
+  margin-left: 220px;
+}
+
+body.sidebar-collapsed .main-content {
+  margin-left: 0;
 }
 
 /* Sidebar dropdown menu style */
@@ -112,4 +116,36 @@
 /* Rotate arrow when expanded */
 .sidebar-menu a[aria-expanded="true"]::after {
   transform: rotate(-180deg);
+}
+
+.sidebar-toggle-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid #6c757d;
+  background-color: #2b3035;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-toggle-btn:hover {
+  background-color: #23272b;
+}
+
+.sidebar-toggle-btn span {
+  width: 18px;
+  height: 2px;
+  background: linear-gradient(90deg, #f8f9fa, #e4c76f, #f8f9fa);
+  border-radius: 2px;
+}
+
+.sidebar-toggle-btn:focus-visible {
+  outline: 2px solid #f8f9fa;
+  outline-offset: 2px;
 }
