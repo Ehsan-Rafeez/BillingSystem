@@ -81,6 +81,22 @@
                          value="{% if is_edit %}{{ order.cnic_number }}{% endif %}">
                 </div>
 
+                <!-- Event Selection -->
+                <div class="col-md-6">
+                  <label class="form-label"><i class="bi bi-calendar-event"></i>Event (optional)</label>
+                  <select name="event_id" class="form-select">
+                    <option value="">-- Link to an event --</option>
+                    {% for ev in events %}
+                      <option value="{{ ev.id }}" {% if is_edit and order.event_id == ev.id %}selected{% endif %}>
+                        {{ ev.title }} — {{ ev.event_date }} ({{ ev.customer.name }})
+                      </option>
+                    {% endfor %}
+                  </select>
+                  <div class="helper mt-1">
+                    Need a new event? <a href="{% url 'create_event' %}">Create it here</a> then return.
+                  </div>
+                </div>
+
                 <!-- Customer Name -->
                 <div class="col-md-6">
                   <label class="form-label required"><i class="bi bi-person-badge"></i>Customer Name</label>
@@ -155,6 +171,42 @@
                     <tr>
                       <th style="width:55%">Item</th>
                       <th style="width:20%">Qty</th>
+                      <th style="width:25%">Note</th>
+                      <th style="width:25%">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+
+              <!-- Menu Items -->
+              <h5 class="section-title mb-3 mt-4"><i class="bi bi-egg-fried me-2"></i>Menu Items</h5>
+              <div class="row g-3 align-items-end">
+                <div class="col-md-7">
+                  <label class="form-label"><i class="bi bi-list"></i>Select Menu Item</label>
+                  <select class="form-select" id="menuSelect">
+                    <option value="">-- choose menu item --</option>
+                    {% for m in menu_items %}
+                      <option value="{{ m.id }}">{{ m.name }} ({{ m.category|default:"" }})</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label"><i class="bi bi-123"></i>Quantity</label>
+                  <input type="number" id="menuQty" class="form-control" min="1" value="1">
+                </div>
+                <div class="col-md-2">
+                  <button type="button" id="addMenuBtn" class="btn btn-outline-primary w-100"><i class="bi bi-plus-circle"></i> Add</button>
+                </div>
+              </div>
+
+              <div class="table-responsive mt-3">
+                <table class="table table-bordered align-middle" id="menuItemsTable">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width:55%">Menu Item</th>
+                      <th style="width:20%">Qty</th>
+                      <th style="width:25%">Note</th>
                       <th style="width:25%">Action</th>
                     </tr>
                   </thead>
@@ -274,6 +326,12 @@
     const addItemBtn = document.getElementById('addItemBtn');
     const itemsTbody = document.querySelector('#itemsTable tbody');
 
+    // Menu items UI
+    const menuSelect = document.getElementById('menuSelect');
+    const menuQty = document.getElementById('menuQty');
+    const addMenuBtn = document.getElementById('addMenuBtn');
+    const menuTbody = document.querySelector('#menuItemsTable tbody');
+
     function addRow(id, name, qty, avail){
       // if already exists, increase qty
       const existing = itemsTbody.querySelector(`tr[data-id="${id}"]`);
@@ -294,6 +352,9 @@
         <td>
           <span class="qty-label">${qty}</span>
           <input type="hidden" name="quantities[]" value="${qty}">
+        </td>
+        <td>
+          <input type="text" name="item_notes[]" class="form-control" placeholder="Note (optional)">
         </td>
         <td>
           <button type="button" class="btn btn-sm btn-outline-danger remove">Remove</button>
@@ -319,6 +380,51 @@
 
     itemsTbody.addEventListener('click', (e)=>{
       const btn = e.target.closest('.remove');
+      if(!btn) return;
+      btn.closest('tr')?.remove();
+    });
+
+    function addMenuRow(id, name, qty){
+      const existing = menuTbody.querySelector(`tr[data-id="${id}"]`);
+      if(existing){
+        const qtyInput = existing.querySelector('input[name="menu_quantities[]"]');
+        qtyInput.value = parseInt(qtyInput.value||'0') + qty;
+        existing.querySelector('.menu-qty-label').textContent = qtyInput.value;
+        return;
+      }
+      const tr = document.createElement('tr');
+      tr.dataset.id = id;
+      tr.innerHTML = `
+        <td>
+          ${name}
+          <input type="hidden" name="menu_item_ids[]" value="${id}">
+        </td>
+        <td>
+          <span class="menu-qty-label">${qty}</span>
+          <input type="hidden" name="menu_quantities[]" value="${qty}">
+        </td>
+        <td>
+          <input type="text" name="menu_notes[]" class="form-control" placeholder="Note (optional)">
+        </td>
+        <td>
+          <button type="button" class="btn btn-sm btn-outline-danger remove-menu">Remove</button>
+        </td>
+      `;
+      menuTbody.appendChild(tr);
+    }
+
+    addMenuBtn?.addEventListener('click', () => {
+      const opt = menuSelect.options[menuSelect.selectedIndex];
+      const id = menuSelect.value;
+      const name = opt?.textContent || '';
+      const qty = parseInt(menuQty.value||'0');
+      if(!id){ Swal.fire({icon:'warning', title:'Select a menu item first'}); return; }
+      if(qty<=0){ Swal.fire({icon:'warning', title:'Quantity must be > 0'}); return; }
+      addMenuRow(id, name, qty);
+    });
+
+    menuTbody.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.remove-menu');
       if(!btn) return;
       btn.closest('tr')?.remove();
     });

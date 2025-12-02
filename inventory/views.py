@@ -1,9 +1,16 @@
+import csv
+from datetime import timedelta, datetime, time
+
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import Q
+from django.db.models import Q, F
 from django.contrib import messages
+from django.http import HttpResponse
+from django.utils.dateparse import parse_date
+from django.utils import timezone
 from decimal import Decimal
 from collections import defaultdict
-from .models import InventoryItem, UnitOfMeasure, InventoryCategory
+from .models import InventoryItem, UnitOfMeasure, InventoryCategory, InventoryBaseItem, StockMovement
+from .forms import InventoryBaseItemForm, UnitOfMeasureForm, InventoryCategoryForm
 from suppliers.models import Supplier
 
 
@@ -72,6 +79,10 @@ def add_stock(request):
             paid_amount = Decimal(request.POST.get("paid_amount", 0))
             payment_method = request.POST.get("payment_method")
 
+            if paid_amount > total_amount:
+                messages.error(request, "Paid amount cannot exceed total amount.")
+                raise ValueError("Invalid payment amounts")
+
             rent_price = request.POST.get("rent_price") or None
             rent_type = request.POST.get("rent_type") or None
             rent_condition = request.POST.get("rent_condition") or None
@@ -79,7 +90,7 @@ def add_stock(request):
             category = get_object_or_404(InventoryCategory, id=category_id)
             uom = get_object_or_404(UnitOfMeasure, id=uom_id)
 
-            InventoryItem.objects.create(
+            stock = InventoryItem.objects.create(
                 name=name,
                 category=category,   # ✅ save FK not name
                 quantity=quantity,
@@ -96,6 +107,13 @@ def add_stock(request):
                 rent_price=rent_price,
                 rent_type=rent_type,
                 rent_condition=rent_condition,
+            )
+            # Log movement for initial stock
+            StockMovement.objects.create(
+                inventory_item=stock,
+                movement_type=StockMovement.IN,
+                quantity=quantity,
+                note="Initial stock entry",
             )
 
             messages.success(request, f"Stock '{name}' added successfully!")
@@ -144,6 +162,7 @@ def list_stock(request):
             "name": s.name,
             "category": s.category.name if s.category else "",   # ✅ show category name
             "quantity": s.quantity,
+            "min_quantity": getattr(s, "min_quantity", 0),
             "uom": s.uom,
             "total_amount": s.total_amount,
             "paid_amount": s.paid_amount,
@@ -151,6 +170,7 @@ def list_stock(request):
             "status": payment_status,
             "payment_method": s.get_payment_method_display() if hasattr(s, "get_payment_method_display") else s.payment_method,
             "supplier_name": s.supplier_name,
+            "low_stock": s.quantity <= getattr(s, "min_quantity", 0),
         })
 
     # Apply filter
@@ -171,6 +191,7 @@ def list_stock(request):
 def edit_stock(request, pk):
     """Edit stock item (same template as add_stock)."""
     stock = get_object_or_404(InventoryItem, pk=pk)
+    old_qty = stock.quantity
     load_default_uoms()
     load_default_categories()
     uoms = UnitOfMeasure.objects.all().order_by("name")
@@ -196,11 +217,24 @@ def edit_stock(request, pk):
             stock.paid_amount = Decimal(request.POST.get("paid_amount", 0))
             stock.payment_method = request.POST.get("payment_method")
 
+            if stock.paid_amount > stock.total_amount:
+                messages.error(request, "Paid amount cannot exceed total amount.")
+                raise ValueError("Invalid payment amounts")
+
             stock.rent_price = request.POST.get("rent_price") or None
             stock.rent_type = request.POST.get("rent_type") or None
             stock.rent_condition = request.POST.get("rent_condition") or None
 
             stock.save()
+            # Log movement if quantity changed
+            delta = stock.quantity - old_qty
+            if delta != 0:
+                StockMovement.objects.create(
+                    inventory_item=stock,
+                    movement_type=StockMovement.IN if delta > 0 else StockMovement.OUT,
+                    quantity=abs(Decimal(delta)),
+                    note="Manual edit adjustment",
+                )
             messages.success(request, f"Stock '{stock.name}' updated successfully!")
             return redirect("list_stock")
 
@@ -239,6 +273,30 @@ def add_payment(request, pk):
             messages.error(request, f"Error adding payment: {str(e)}")
 
     return render(request, "inventory/add_payment.html", {"stock": stock})
+
+
+def restock_item(request, pk):
+    """Increment quantity for an existing stock item and log movement."""
+    stock = get_object_or_404(InventoryItem, pk=pk)
+    if request.method == "POST":
+        try:
+            qty = Decimal(request.POST.get("restock_quantity", "0"))
+            note = (request.POST.get("note") or "").strip()
+            if qty <= 0:
+                messages.error(request, "Quantity must be greater than zero.")
+                return redirect("restock_item", pk=pk)
+            InventoryItem.objects.filter(id=stock.id).update(quantity=F("quantity") + qty)
+            StockMovement.objects.create(
+                inventory_item=stock,
+                movement_type=StockMovement.IN,
+                quantity=qty,
+                note=note or "Restock",
+            )
+            messages.success(request, f"Restocked '{stock.name}' by {qty}.")
+            return redirect("list_stock")
+        except Exception as e:
+            messages.error(request, f"Error restocking: {e}")
+    return render(request, "inventory/restock_item.html", {"stock": stock})
 
 
 # ---------------- INVENTORY VIEWS ---------------- #
@@ -310,3 +368,243 @@ def live_stock(request):
     live_items = [{"name": k, "quantity": v} for k, v in combined.items()]
 
     return render(request, "inventory/live_stock.html", {"live_items": live_items})
+
+
+# ---------------- BASE INVENTORY (catalog) ---------------- #
+def base_item_list(request):
+    items = InventoryBaseItem.objects.select_related("uom", "supplier").order_by("name")
+    return render(request, "inventory/baseitem_list.html", {"items": items})
+
+
+def base_item_create(request):
+    if request.method == "POST":
+        form = InventoryBaseItemForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Base item created.")
+            return redirect("baseitem_list")
+        messages.error(request, "Please fix the errors below.")
+    else:
+        form = InventoryBaseItemForm()
+    return render(request, "inventory/baseitem_form.html", {"form": form, "is_edit": False})
+
+
+def base_item_update(request, pk):
+    item = get_object_or_404(InventoryBaseItem, pk=pk)
+    if request.method == "POST":
+        form = InventoryBaseItemForm(request.POST, instance=item)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Base item updated.")
+            return redirect("baseitem_list")
+        messages.error(request, "Please fix the errors below.")
+    else:
+        form = InventoryBaseItemForm(instance=item)
+    return render(request, "inventory/baseitem_form.html", {"form": form, "is_edit": True, "item": item})
+
+
+def base_item_delete(request, pk):
+    item = get_object_or_404(InventoryBaseItem, pk=pk)
+    if request.method == "POST":
+        item.delete()
+        messages.success(request, "Base item deleted.")
+        return redirect("baseitem_list")
+    return render(request, "inventory/baseitem_confirm_delete.html", {"item": item})
+
+
+# ---------------- UOM & CATEGORY MGMT ---------------- #
+def uom_list(request):
+    uoms = UnitOfMeasure.objects.order_by("name")
+    return render(request, "inventory/uom_list.html", {"uoms": uoms})
+
+
+def uom_create(request):
+    if request.method == "POST":
+        form = UnitOfMeasureForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Unit created.")
+            return redirect("uom_list")
+        messages.error(request, "Please fix the errors below.")
+    else:
+        form = UnitOfMeasureForm()
+    return render(request, "inventory/uom_form.html", {"form": form, "is_edit": False})
+
+
+def uom_update(request, pk):
+    uom = get_object_or_404(UnitOfMeasure, pk=pk)
+    if request.method == "POST":
+        form = UnitOfMeasureForm(request.POST, instance=uom)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Unit updated.")
+            return redirect("uom_list")
+        messages.error(request, "Please fix the errors below.")
+    else:
+        form = UnitOfMeasureForm(instance=uom)
+    return render(request, "inventory/uom_form.html", {"form": form, "is_edit": True, "uom": uom})
+
+
+def category_list(request):
+    categories = InventoryCategory.objects.order_by("name")
+    return render(request, "inventory/category_list.html", {"categories": categories})
+
+
+def category_create(request):
+    if request.method == "POST":
+        form = InventoryCategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Category created.")
+            return redirect("inventory_category_list")
+        messages.error(request, "Please fix the errors below.")
+    else:
+        form = InventoryCategoryForm()
+    return render(request, "inventory/category_form.html", {"form": form, "is_edit": False})
+
+
+def category_update(request, pk):
+    category = get_object_or_404(InventoryCategory, pk=pk)
+    if request.method == "POST":
+        form = InventoryCategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Category updated.")
+            return redirect("inventory_category_list")
+        messages.error(request, "Please fix the errors below.")
+    else:
+        form = InventoryCategoryForm(instance=category)
+    return render(request, "inventory/category_form.html", {"form": form, "is_edit": True, "category": category})
+
+
+# ---------------- REPORTS ---------------- #
+def _parse_date_any(val):
+    if not val:
+        return None
+    # try ISO first
+    d = parse_date(val)
+    if d:
+        return d
+    for fmt in ("%m/%d/%Y", "%d/%m/%Y"):
+        try:
+            return datetime.strptime(val, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
+def stock_purchase_report(request):
+    """Report on stock purchases/restocks with export."""
+    start_raw = request.GET.get("start")
+    end_raw = request.GET.get("end")
+    download = request.GET.get("download")
+
+    start = _parse_date_any(start_raw)
+    end = _parse_date_any(end_raw)
+
+    tz = timezone.get_current_timezone()
+    start_dt = timezone.make_aware(datetime.combine(start, time.min), tz) if start else None
+    end_dt = timezone.make_aware(datetime.combine(end, time.max), tz) if end else None
+
+    items_qs = InventoryItem.objects.all()
+    if start_dt and end_dt:
+        items_qs = items_qs.filter(created_at__range=(start_dt, end_dt))
+    elif start_dt:
+        items_qs = items_qs.filter(created_at__gte=start_dt)
+    elif end_dt:
+        items_qs = items_qs.filter(created_at__lte=end_dt)
+
+    movements_qs = StockMovement.objects.filter(movement_type=StockMovement.IN).select_related("inventory_item")
+    if start_dt and end_dt:
+        movements_qs = movements_qs.filter(created_at__range=(start_dt, end_dt))
+    elif start_dt:
+        movements_qs = movements_qs.filter(created_at__gte=start_dt)
+    elif end_dt:
+        movements_qs = movements_qs.filter(created_at__lte=end_dt)
+
+    rows = []
+    for itm in items_qs:
+        rows.append({
+            "date": itm.created_at.date(),
+            "item": itm.name,
+            "category": itm.category.name if itm.category else "",
+            "quantity": itm.quantity,
+            "uom": itm.uom.abbreviation,
+            "amount": itm.total_amount,
+            "source": "New Stock",
+            "note": itm.description or "",
+        })
+    for mv in movements_qs:
+        rows.append({
+            "date": mv.created_at.date(),
+            "item": mv.inventory_item.name,
+            "category": mv.inventory_item.category.name if mv.inventory_item.category else "",
+            "quantity": mv.quantity,
+            "uom": mv.inventory_item.uom.abbreviation,
+            "amount": "",
+            "source": "Restock",
+            "note": mv.note,
+        })
+
+    # Sort by date
+    rows = sorted(rows, key=lambda r: r["date"], reverse=True)
+
+    if download == "csv":
+        resp = HttpResponse(content_type="text/csv")
+        resp["Content-Disposition"] = 'attachment; filename="stock_purchases.csv"'
+        writer = csv.writer(resp)
+        writer.writerow(["Date", "Item", "Category", "Quantity", "UOM", "Amount", "Source", "Note"])
+        for r in rows:
+            writer.writerow([r["date"], r["item"], r["category"], r["quantity"], r["uom"], r["amount"], r["source"], r["note"]])
+        return resp
+
+    # Simple rollups
+    total_qty = sum([Decimal(r["quantity"]) for r in rows]) if rows else Decimal("0")
+    total_amount = sum([Decimal(r["amount"]) for r in rows if r["amount"]]) if rows else Decimal("0")
+
+    return render(request, "inventory/stock_purchase_report.html", {
+        "rows": rows,
+        "start": start_raw,
+        "end": end_raw,
+        "total_qty": total_qty,
+        "total_amount": total_amount,
+    })
+
+
+def stock_usage_report(request):
+    """Report on stock usage (OUT movements)."""
+    start_raw = request.GET.get("start")
+    end_raw = request.GET.get("end")
+    start = _parse_date_any(start_raw)
+    end = _parse_date_any(end_raw)
+    tz = timezone.get_current_timezone()
+    start_dt = timezone.make_aware(datetime.combine(start, time.min), tz) if start else None
+    end_dt = timezone.make_aware(datetime.combine(end, time.max), tz) if end else None
+
+    qs = StockMovement.objects.filter(movement_type=StockMovement.OUT).select_related("inventory_item")
+    if start_dt and end_dt:
+        qs = qs.filter(created_at__range=(start_dt, end_dt))
+    elif start_dt:
+        qs = qs.filter(created_at__gte=start_dt)
+    elif end_dt:
+        qs = qs.filter(created_at__lte=end_dt)
+
+    rows = []
+    for mv in qs.order_by("-created_at"):
+        rows.append({
+            "date": mv.created_at.date(),
+            "item": mv.inventory_item.name,
+            "category": mv.inventory_item.category.name if mv.inventory_item.category else "",
+            "quantity": mv.quantity,
+            "uom": mv.inventory_item.uom.abbreviation,
+            "note": mv.note,
+        })
+
+    total_qty = sum([Decimal(r["quantity"]) for r in rows]) if rows else Decimal("0")
+
+    return render(request, "inventory/stock_usage_report.html", {
+        "rows": rows,
+        "start": start_raw,
+        "end": end_raw,
+        "total_qty": total_qty,
+    })

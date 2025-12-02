@@ -39,6 +39,7 @@
           <th>Item</th>
           <th>Category</th>
           <th>Quantity</th>
+          <th>Min</th>
           <th>UOM</th>
           <th>Total</th>
           <th>Paid</th>
@@ -55,7 +56,13 @@
             <td>{{ stock.stock_code }}</td>
             <td>{{ stock.name }}</td>
             <td>{{ stock.category }}</td>
-            <td>{{ stock.quantity }}</td>
+            <td>
+              {{ stock.quantity }}
+              {% if stock.low_stock %}
+                <span class="badge bg-danger ms-1">Low</span>
+              {% endif %}
+            </td>
+            <td>{{ stock.min_quantity }}</td>
             <td>{{ stock.uom.abbreviation }}</td>
             <td>PKR {{ stock.total_amount|floatformat:2 }}</td>
             <td>PKR {{ stock.paid_amount|floatformat:2 }}</td>
@@ -78,6 +85,9 @@
               <!-- ✅ Edit Button -->
               <a href="{% url 'edit_stock' stock.id %}" class="btn btn-sm btn-info text-white">
                 <i class="bi bi-pencil-square"></i>
+              </a>
+              <a href="{% url 'restock_item' stock.id %}" class="btn btn-sm btn-success">
+                <i class="bi bi-arrow-up-circle"></i>
               </a>
 
               <!-- ✅ Delete Form -->

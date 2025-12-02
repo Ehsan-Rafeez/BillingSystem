@@ -1,0 +1,53 @@
+{% extends 'core/base.html' %}
+{% block title %}Quotes / Proposals{% endblock %}
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-1">Quotes / Proposals</h2>
+    <div class="text-muted">Draft, send, and track quotes for events.</div>
+  </div>
+  <a class="btn btn-primary" href="{% url 'quote_create' %}"><i class="bi bi-plus-circle me-1"></i> New Quote</a>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="card shadow-sm">
+  <div class="card-body table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Title</th>
+          <th>Event</th>
+          <th>Status</th>
+          <th>Valid Until</th>
+          <th>Total</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for q in quotes %}
+          <tr>
+            <td class="fw-semibold">{{ q.title }}</td>
+            <td>{{ q.event.title }} ({{ q.event.event_date }})</td>
+            <td>{{ q.get_status_display }}</td>
+            <td>{{ q.valid_until|default:"-" }}</td>
+            <td>PKR {{ q.total_amount }}</td>
+            <td class="d-flex gap-2">
+              <a href="{% url 'quote_detail' q.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i> View</a>
+              <a href="{% url 'quote_update' q.id %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil-square"></i> Edit</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted">No quotes yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -89,6 +89,15 @@
           <a class="dropdown-item" href="{% url 'list_orders' %}">List Orders</a>
         </li>
         <li>
+          <a class="dropdown-item" href="{% url 'list_events' %}">Events</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'menu_list' %}">Menus</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'quote_list' %}">Quotes</a>
+        </li>
+        <li>
           <a class="dropdown-item" href="{% url 'payment_entry_select' %}">Payment Entry</a>
         </li>
       </ul>
@@ -142,7 +151,69 @@
           <li>
             <a class="dropdown-item" href="{% url 'list_inventory' %}">List Inventory</a>
           </li>
+          <li>
+            <a class="dropdown-item" href="{% url 'baseitem_list' %}">Base Items</a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="{% url 'uom_list' %}">Units</a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="{% url 'inventory_category_list' %}">Categories</a>
+          </li>
         </ul>
+      </ul>
+
+      <!-- Reports -->
+      <a
+        href="#reportsSubmenu"
+        data-bs-toggle="collapse"
+        aria-expanded="false"
+        class="dropdown-toggle text-white d-block px-3 py-2"
+        id="sidebarReportsDropdown"
+      >
+        Reports
+      </a>
+      <ul class="collapse list-unstyled ps-3" id="reportsSubmenu">
+        <li>
+          <a class="dropdown-item" href="{% url 'stock_purchase_report' %}">Stock Purchase Report</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'stock_usage_report' %}">Stock Usage Report</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'revenue_report' %}">Revenue Report</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'expense_report' %}">Expense Report</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'profit_loss_report' %}">Profit &amp; Loss</a>
+        </li>
+      </ul>
+
+      <!-- Expenses -->
+      <a
+        href="#expensesSubmenu"
+        data-bs-toggle="collapse"
+        aria-expanded="false"
+        class="dropdown-toggle text-white d-block px-3 py-2"
+        id="sidebarExpensesDropdown"
+      >
+        Expenses
+      </a>
+      <ul class="collapse list-unstyled ps-3" id="expensesSubmenu">
+        <li>
+          <a class="dropdown-item" href="{% url 'expense_list' %}">List Expenses</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'expense_create' %}">Add Expense</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'expense_report' %}">Expense Report</a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="{% url 'expense_category_list' %}">Expense Categories</a>
+        </li>
       </ul>
 
       <!-- Suppliers Collapsible -->

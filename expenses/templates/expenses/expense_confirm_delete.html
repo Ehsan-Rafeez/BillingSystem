@@ -1,0 +1,15 @@
+{% extends 'core/base.html' %}
+{% block title %}Delete Expense{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h5>Delete Expense</h5>
+    <p>Are you sure you want to delete <strong>{{ expense.category }}</strong> on {{ expense.date }} (PKR {{ expense.amount }})?</p>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Delete</button>
+      <a class="btn btn-light border" href="{% url 'expense_list' %}">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'core/base.html' %}
+{% block title %}Menu Categories{% endblock %}
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-1">Menu Categories</h2>
+    <div class="text-muted">Organize menu items by category.</div>
+  </div>
+  <a class="btn btn-primary" href="{% url 'category_create' %}"><i class="bi bi-plus-circle me-1"></i> New Category</a>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="card shadow-sm">
+  <div class="card-body table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Name</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat in categories %}
+          <tr>
+            <td class="fw-semibold">{{ cat.name }}</td>
+            <td>
+              <a href="{% url 'category_update' cat.id %}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-pencil-square"></i> Edit
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="2" class="text-center text-muted">No categories yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

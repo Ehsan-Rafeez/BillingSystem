@@ -1,0 +1,97 @@
+{% extends 'core/base.html' %}
+{% block title %}{% if is_edit %}Edit Base Item{% else %}Create Base Item{% endif %}{% endblock %}
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-1">{% if is_edit %}Edit Base Item{% else %}Create Base Item{% endif %}</h2>
+    <div class="text-muted">Manage catalog items with stock buckets and supplier link.</div>
+  </div>
+  <a class="btn btn-light border" href="{% url 'baseitem_list' %}"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Name</label>
+          {{ form.name }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Type</label>
+          {{ form.item_type }}
+        </div>
+        <div class="col-md-12">
+          <label class="form-label">Description</label>
+          {{ form.description }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Quantity (catalog)</label>
+          {{ form.quantity }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">UOM</label>
+          {{ form.uom }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Price</label>
+          {{ form.price }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Cost per UOM</label>
+          {{ form.cost_per_uom }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Supplier</label>
+          {{ form.supplier }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Active</label>
+          {{ form.is_active }}
+        </div>
+      </div>
+
+      <hr>
+      <h5>Stock Buckets</h5>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">On Hand</label>
+          {{ form.qty_on_hand }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Available</label>
+          {{ form.qty_available }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Reserved</label>
+          {{ form.qty_reserved }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">In Use</label>
+          {{ form.qty_in_use }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Damaged</label>
+          {{ form.qty_damaged }}
+        </div>
+      </div>
+
+      <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+          {% if is_edit %}<i class="bi bi-save2"></i> Update{% else %}<i class="bi bi-plus-circle"></i> Create{% endif %}
+        </button>
+        <a href="{% url 'baseitem_list' %}" class="btn btn-light border">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

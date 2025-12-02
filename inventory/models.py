@@ -129,6 +129,7 @@ class InventoryItem(models.Model):
     total_amount = models.DecimalField(max_digits=14, decimal_places=2)
     paid_amount = models.DecimalField(max_digits=14, decimal_places=2, default=Decimal("0.00"))
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default="cash")
+    min_quantity = models.PositiveIntegerField(default=0, help_text="Warn when quantity is at or below this level")
 
     # Rent Info (optional)
     rent_price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
@@ -155,3 +156,26 @@ class InventoryItem(models.Model):
 
     class Meta:
         verbose_name_plural = "Inventory Items"
+
+
+class StockMovement(models.Model):
+    IN = "IN"
+    OUT = "OUT"
+    ADJUST = "ADJ"
+    TYPES = [
+        (IN, "In"),
+        (OUT, "Out"),
+        (ADJUST, "Adjust"),
+    ]
+
+    inventory_item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, related_name="movements")
+    movement_type = models.CharField(max_length=4, choices=TYPES)
+    quantity = models.DecimalField(max_digits=14, decimal_places=4)
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.inventory_item} {self.movement_type} {self.quantity}"

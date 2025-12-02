@@ -137,6 +137,7 @@
             <th>ID</th>
             <th>Order Date</th>
             <th>Customer Name</th>
+            <th>Event</th>
             <th>Phone</th>
             {% comment %} <th>Customer Type</th> <!-- Added Customer Type --> {% endcomment %}
             <th>Email</th> <!-- Added Email -->
@@ -156,11 +157,12 @@
             data-id="{{ order.id }}"
             data-order="{{ order.order_date|lower }}"
             data-customer="{{ order.customer_name|lower }}"
+            data-event="{{ order.event.title|default_if_none:''|lower }}"
             data-phone="{{ order.phone_number|lower }}"
             {% comment %} data-customer_type="{{ order.customer_type|lower }}" {% endcomment %}
             data-email="{{ order.email|lower }}"
             data-address="{{ order.address|lower }}"
-            data-cnic="{{ order.Cnic_Number|lower }}"
+            data-cnic="{{ order.cnic_number|lower }}"
             data-date="{{ order.delivery_date|date:'Y-m-d' }}"
             data-total="{{ order.total_amount }}"
             data-received="{{ order.received_amount }}"
@@ -169,6 +171,7 @@
             <td>{{ order.id }}</td>
             <td>{{ order.order_date }}</td>
             <td>{{ order.customer_name }}</td>
+            <td>{% if order.event %}{{ order.event.title }} ({{ order.event.event_date }}){% else %}-{% endif %}</td>
             <td>{{ order.phone_number }}</td>
             {% comment %} <td>{{ order.customer_type }}</td> <!-- Display Customer Type --> {% endcomment %}
             <td>{{ order.email }}</td> <!-- Display Email -->
@@ -285,6 +288,7 @@
     for(const tr of tbody.querySelectorAll('tr')){
       const order   = tr.dataset.order || '';
       const cust    = tr.dataset.customer || '';
+      const ev      = tr.dataset.event || '';
       const phone   = tr.dataset.phone || '';
       const cnic    = tr.dataset.cnic || '';
       const dStr    = tr.dataset.date || '';
@@ -293,7 +297,7 @@
       const rec     = toNum(tr.dataset.received);
       const due     = toNum(tr.dataset.due);
 
-      const textHit = !query || order.includes(query) || cust.includes(query) || phone.includes(query);
+      const textHit = !query || order.includes(query) || cust.includes(query) || phone.includes(query) || ev.includes(query);
       const dateHit = dateOk(dVal, f, t);
       const dueHit  = (mode==='all') || (mode==='due' && due>0) || (mode==='clear' && due<=0);
 
