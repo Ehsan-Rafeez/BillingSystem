@@ -1,0 +1,407 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Orders List - School Management System{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+  /* ===== Layout polish ===== */
+  .page-head{
+    display:flex; align-items:center; justify-content:space-between; gap:1rem;
+    margin-top:1rem; margin-bottom:1rem;
+  }
+  .title-wrap{
+    display:flex; align-items:center; gap:.6rem;
+    background: linear-gradient(90deg,#f8fafc,#eef2ff,#f8fafc);
+    background-size: 200% 100%; animation: shimmer 4s ease infinite;
+    padding:.8rem 1rem; border-radius:.8rem;
+  }
+  @keyframes shimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+  .filters{
+    display:flex; flex-wrap:wrap; gap:.5rem;
+  }
+  .filters .form-control, .filters .form-select{
+    min-width: 170px;
+  }
+  .fx-card{
+    border-radius:1rem; overflow:hidden;
+    box-shadow:0 10px 28px rgba(0,0,0,.06);
+    border:1px solid #eef2f7; background:#fff;
+  }
+  .fx-head{ padding:.9rem 1rem; border-bottom:1px solid #eef2f7; background:linear-gradient(180deg,#ffffff,#f8fafc); }
+  .fx-body{ padding:1rem; }
+
+  /* ===== Stats ===== */
+  .stats{ display:grid; grid-template-columns: repeat(4,1fr); gap:.8rem; margin-bottom:1rem;}
+  .stat{ border-radius:.9rem; padding:.8rem 1rem; background:#fff; box-shadow:0 8px 20px rgba(0,0,0,.06); }
+  .stat .k{ font-size:.8rem; color:#6b7280; }
+  .stat .v{ font-weight:700; font-size:1.1rem; }
+  .stat.orders { border-left:5px solid #0ea5e9; }
+  .stat.total  { border-left:5px solid #6366f1; }
+  .stat.rece   { border-left:5px solid #22c55e; }
+  .stat.due    { border-left:5px solid #ef4444; }
+
+  /* ===== Table ===== */
+  .table thead th{ position:sticky; top:0; z-index:1; }
+  .table-hover tbody tr:hover{ background:#f8fafc; }
+  .badge-soft{
+    border:1px solid rgba(0,0,0,.06); font-weight:600;
+    padding:.35rem .6rem; border-radius:999px;
+  }
+  .badge-due-0{ background:#e8f7ee; color:#0a7a2f; }
+  .badge-due-mid{ background:#fff3cd; color:#7a5a00; }
+  .badge-due-high{ background:#fde2e1; color:#9c1e16; }
+
+  .actions-wrap { display:flex; flex-wrap:wrap; gap:.46rem; }
+  .action-btn{
+    display:inline-flex; align-items:center; gap:.5rem;
+    padding:.38rem .75rem; border-radius:999px;
+    border:1px solid transparent;
+    font-weight:600; line-height:1;
+    transition: transform .16s ease, box-shadow .16s ease;
+  }
+  .action-btn:hover{ transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.12); }
+  .action-add{ background:#e8f7ee; color:#0a7a2f; }
+  .action-edit{ background:#fff3cd; color:#7a5a00; }
+  .action-delete{ background:#fde2e1; color:#9c1e16; }
+  .action-label{ font-size:.92rem; }
+
+  @media(max-width:992px){ .stats{ grid-template-columns: repeat(2,1fr);} }
+  @media(max-width:576px){
+    .page-head{ flex-direction:column; align-items:stretch; }
+    .filters{ gap:.4rem; }
+    .filters .form-control, .filters .form-select{ min-width:unset; flex:1; }
+    .action-label{ display:none; }
+  }
+</style>
+
+<div class="page-head">
+  <div class="title-wrap">
+    <i class="bi bi-list-check fs-4 text-primary"></i>
+    <div>
+      <h2 class="m-0">Orders List</h2>
+      <div class="text-muted small">Manage orders, payments, and dues at a glance.</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
+      <input id="q" type="text" class="form-control" placeholder="Search (order, customer, phone)…">
+    </div>
+    <input id="dateFrom" type="date" class="form-control" title="Delivery from">
+    <input id="dateTo" type="date" class="form-control" title="Delivery to">
+    <select id="dueFilter" class="form-select">
+      <option value="all">All</option>
+      <option value="due">Only Due </option>
+      <option value="clear">Only Cleared </option>
+    </select>
+    <button id="resetBtn" class="btn btn-light border"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
+    <a href="{% url 'create_orders' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>New Order</a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat orders">
+    <div class="k">Total Orders (shown)</div>
+    <div class="v" id="statOrders">-</div>
+  </div>
+  <div class="stat total">
+    <div class="k">Total Amount</div>
+    <div class="v" id="statTotal">PKR 0.00</div>
+  </div>
+  <div class="stat rece">
+    <div class="k">Total Received</div>
+    <div class="v" id="statReceived">PKR 0.00</div>
+  </div>
+  <div class="stat due">
+    <div class="k">Total Due</div>
+    <div class="v" id="statDue">PKR 0.00</div>
+  </div>
+</div>
+
+<div class="fx-card">
+  <div class="fx-head d-flex align-items-center justify-content-between">
+    <div class="fw-semibold"><i class="bi bi-table me-1"></i> Orders</div>
+    <span class="badge bg-light text-dark border">Live Filters</span>
+  </div>
+  <div class="fx-body">
+    <div class="table-responsive">
+      <table class="table table-hover table-bordered align-middle" id="ordersTable">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Order Date</th>
+            <th>Customer Name</th>
+            <th>Event</th>
+            <th>Phone</th>
+            {% comment %} <th>Customer Type</th> <!-- Added Customer Type --> {% endcomment %}
+            <th>Email</th> <!-- Added Email -->
+            <th>Address</th> <!-- Added Address -->
+            <th>Cnic Number</th>
+            <th>Delivery Date</th>
+            <th>Total Amount</th>
+            <th>Received Amount</th>
+            <th>Due Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr
+            data-id="{{ order.id }}"
+            data-order="{{ order.order_date|lower }}"
+            data-customer="{{ order.customer_name|lower }}"
+            data-event="{{ order.event.title|default_if_none:''|lower }}"
+            data-phone="{{ order.phone_number|lower }}"
+            {% comment %} data-customer_type="{{ order.customer_type|lower }}" {% endcomment %}
+            data-email="{{ order.email|lower }}"
+            data-address="{{ order.address|lower }}"
+            data-cnic="{{ order.cnic_number|lower }}"
+            data-date="{{ order.delivery_date|date:'Y-m-d' }}"
+            data-total="{{ order.total_amount }}"
+            data-received="{{ order.received_amount }}"
+            data-due="{{ order.due_amount }}"
+          >
+            <td>{{ order.id }}</td>
+            <td>{{ order.order_date }}</td>
+            <td>{{ order.customer_name }}</td>
+            <td>{% if order.event %}{{ order.event.title }} ({{ order.event.event_date }}){% else %}-{% endif %}</td>
+            <td>{{ order.phone_number }}</td>
+            {% comment %} <td>{{ order.customer_type }}</td> <!-- Display Customer Type --> {% endcomment %}
+            <td>{{ order.email }}</td> <!-- Display Email -->
+            <td>{{ order.address }}</td> <!-- Display Address -->
+            <td>{{ order.cnic_number }}</td>
+            <td>{{ order.delivery_date }}</td>
+            <td>PKR {{ order.total_amount }}</td>
+            <td>PKR {{ order.received_amount }}</td>
+            <td>
+              {% with due=order.due_amount|default_if_none:0 %}
+                {% if due == 0 %}
+                  <span class="badge-soft badge-due-0">PKR {{ due }}</span>
+                {% elif due > 0 and due <= 1000 %}
+                  <span class="badge-soft badge-due-mid">PKR {{ due }}</span>
+                {% else %}
+                  <span class="badge-soft badge-due-high">PKR {{ due }}</span>
+                {% endif %}
+              {% endwith %}
+            </td>
+            <td>
+              {% if order.status == 'DELIVERED' %}
+                <span class="badge-soft badge-due-0">Delivered</span>
+              {% else %}
+                <span class="badge-soft badge-due-mid">Pending</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="actions-wrap">
+                <a href="{% url 'payment_entry' order.id %}"
+                   class="action-btn action-add"
+                   data-action="Add Payment"
+                   data-type="add"
+                   data-href="{% url 'payment_entry' order.id %}">
+                  <i class="bi bi-cash-coin"></i><span class="action-label">Add Payment</span>
+                </a>
+
+                <a href="{% url 'edit_order' order.id %}"
+                   class="action-btn action-edit"
+                   data-action="Edit Order"
+                   data-type="edit"
+                   data-href="{% url 'edit_order' order.id %}">
+                  <i class="bi bi-pencil-square"></i><span class="action-label">Edit</span>
+                </a>
+
+                {% if order.status != 'DELIVERED' %}
+                <form method="post" action="{% url 'deliver_order' order.id %}" class="d-inline deliver-form">
+                  {% csrf_token %}
+                  <button type="button"
+                          class="action-btn action-add"
+                          data-action="Deliver Order"
+                          data-type="deliver"
+                          data-submit="closest-form">
+                    <i class="bi bi-truck"></i><span class="action-label">Deliver</span>
+                  </button>
+                </form>
+                {% endif %}
+
+                <form method="post" action="{% url 'delete_order' order.id %}" class="d-inline delete-form">
+                  {% csrf_token %}
+                  <button type="button"
+                          class="action-btn action-delete"
+                          data-action="Delete Order"
+                          data-type="delete"
+                          data-submit="closest-form">
+                    <i class="bi bi-trash3"></i><span class="action-label">Delete</span>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="13" class="text-center">No orders found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---------- Utils ----------
+  function toNum(x){ const n = parseFloat((x||'').toString().replace(/,/g,'')); return isFinite(n)?n:0; }
+  function fmt(n){ n=toNum(n); return 'PKR ' + n.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2}); }
+  function dateOk(d, from, to){
+    if(!d) return true;
+    if(from && d < from) return false;
+    if(to && d > to) return false;
+    return true;
+  }
+
+  // ---------- Elements ----------
+  const q       = document.getElementById('q');
+  const dateF   = document.getElementById('dateFrom');
+  const dateT   = document.getElementById('dateTo');
+  const dueSel  = document.getElementById('dueFilter');
+  const resetBtn= document.getElementById('resetBtn');
+  const tbody   = document.querySelector('#ordersTable tbody');
+
+  const stOrders= document.getElementById('statOrders');
+  const stTotal = document.getElementById('statTotal');
+  const stRece  = document.getElementById('statReceived');
+  const stDue   = document.getElementById('statDue');
+
+  // ---------- Filtering ----------
+  function applyFilters(){
+    const query = (q.value||'').trim().toLowerCase();
+    const f = dateF.value ? new Date(dateF.value) : null;
+    const t = dateT.value ? new Date(dateT.value) : null;
+    const mode = dueSel.value; // all | due | clear
+
+    let shown=0, sumTotal=0, sumRece=0, sumDue=0;
+
+    for(const tr of tbody.querySelectorAll('tr')){
+      const order   = tr.dataset.order || '';
+      const cust    = tr.dataset.customer || '';
+      const ev      = tr.dataset.event || '';
+      const phone   = tr.dataset.phone || '';
+      const cnic    = tr.dataset.cnic || '';
+      const dStr    = tr.dataset.date || '';
+      const dVal    = dStr ? new Date(dStr) : null;
+      const total   = toNum(tr.dataset.total);
+      const rec     = toNum(tr.dataset.received);
+      const due     = toNum(tr.dataset.due);
+
+      const textHit = !query || order.includes(query) || cust.includes(query) || phone.includes(query) || ev.includes(query);
+      const dateHit = dateOk(dVal, f, t);
+      const dueHit  = (mode==='all') || (mode==='due' && due>0) || (mode==='clear' && due<=0);
+
+      const visible = textHit && dateHit && dueHit;
+      tr.style.display = visible ? '' : 'none';
+
+      if(visible){
+        shown++;
+        sumTotal += total;
+        sumRece  += rec;
+        sumDue   += due;
+      }
+    }
+
+    stOrders.textContent = shown;
+    stTotal.textContent  = fmt(sumTotal);
+    stRece.textContent   = fmt(sumRece);
+    stDue.textContent    = fmt(sumDue);
+  }
+
+  q.addEventListener('input', applyFilters);
+  dateF.addEventListener('change', applyFilters);
+  dateT.addEventListener('change', applyFilters);
+  dueSel.addEventListener('change', applyFilters);
+  resetBtn.addEventListener('click', () => {
+    q.value=''; dateF.value=''; dateT.value=''; dueSel.value='all'; applyFilters();
+  });
+
+  // Initial stats calculation
+  applyFilters();
+
+  // ---------- SweetAlert confirmations ----------
+  document.addEventListener('click', async function(e){
+    const btn = e.target.closest('.action-btn');
+    if(!btn) return;
+
+    e.preventDefault();
+
+    const type  = btn.dataset.type;                   // add | edit | delete
+    const label = btn.dataset.action || 'Proceed';
+    const href  = btn.dataset.href;
+    const isForm= btn.dataset.submit === 'closest-form';
+
+    let icon = 'question', confirmText = 'Yes';
+    let title = label, text = `Do you want to ${label.toLowerCase()}?`;
+    let confirmColor = '#0d6efd';
+
+    if(type === 'delete'){
+      icon = 'warning';
+      title = 'Delete this order?';
+      text = 'This will permanently delete the order. This action cannot be undone.';
+      confirmText = 'Yes, delete';
+      confirmColor = '#dc3545';
+    } else if(type === 'edit'){
+      icon = 'question';
+      title = 'Edit this order?';
+      text = 'You will be taken to the edit form.';
+      confirmText = 'Proceed';
+    } else if(type === 'add'){
+      icon = 'question';
+      title = 'Add payment?';
+      text = 'You will be taken to the payment entry page.';
+      confirmText = 'Proceed';
+      confirmColor = '#198754';
+    } else if(type === 'deliver'){
+      icon = 'question';
+      title = 'Mark as delivered?';
+      text = 'This will deduct stock for all order items.';
+      confirmText = 'Yes, deliver';
+      confirmColor = '#16a34a';
+    }
+
+    const result = await Swal.fire({
+      title, text, icon,
+      showCancelButton: true,
+      confirmButtonText: confirmText,
+      cancelButtonText: 'Cancel',
+      reverseButtons: true,
+      buttonsStyling: false,
+      customClass: {
+        popup: 'rounded-4',
+        confirmButton: 'btn',
+        cancelButton: 'btn btn-light border ms-2'
+      },
+      didOpen: (el) => {
+        const confirmBtn = el.querySelector('.swal2-confirm.btn');
+        confirmBtn.style.backgroundColor = confirmColor;
+        confirmBtn.style.color = '#fff';
+      }
+    });
+
+    if(result.isConfirmed){
+      if(isForm){
+        btn.closest('form').submit();
+      } else if(href){
+        await Swal.fire({
+          title: (type==='delete'?'Deleting...':'Opening...'),
+          timer: 600, showConfirmButton: false,
+          didOpen: () => Swal.showLoading()
+        });
+        window.location.href = href;
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}

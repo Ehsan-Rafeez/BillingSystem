@@ -1,0 +1,259 @@
+{% extends 'core/base.html' %}
+{% block title %}Dashboard - Billing System{% endblock %}
+{% block content %}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+  .dash-hero {
+    background: linear-gradient(135deg, #0d6efd 0%, #6f9fff 100%);
+    color: #fff;
+    border-radius: 1rem;
+  }
+  .kpi-card {
+    border: 1px solid #eef2f7;
+    border-radius: 1rem;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.06); }
+  .kpi-icon {
+    width: 3rem; height: 3rem;
+    display: grid; place-items: center;
+    border-radius: .75rem;
+    background: #f1f5ff;
+  }
+  .quick-actions .btn { border-radius: .75rem; }
+  .table thead th { font-weight: 600; }
+</style>
+
+<div class="container mt-5 pt-4">
+
+  <!-- Hero -->
+  <div class="dash-hero p-4 p-md-5 mb-4">
+    <div class="d-md-flex align-items-center justify-content-between gap-3">
+      <div>
+        <h1 class="h3 mb-2">Welcome to the Billing Management Software</h1>
+        <p class="mb-0">Track orders, customers, and payments—everything in one place.</p>
+      </div>
+      <div class="text-nowrap mt-3 mt-md-0">
+        <a href="{% url 'create_orders' %}" class="btn btn-light text-primary me-2">
+          <i class="bi bi-plus-circle me-1"></i> New Order
+        </a>
+        <a href="{% url 'list_orders' %}" class="btn btn-outline-light">
+          <i class="bi bi-speedometer2 me-1"></i> View Orders
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="row g-3 g-md-4 mb-4">
+
+    <div class="col-6 col-xl-2">
+      <div class="kpi-card p-3 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon"><i class="bi bi-bag-check"></i></div>
+          <div>
+            <div class="text-muted">Total Orders</div>
+            <div class="h5 mb-0" data-count="{{ total_orders|default:0 }}">{{ total_orders|default:0 }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-xl-2">
+      <div class="kpi-card p-3 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon"><i class="bi bi-file-earmark-text"></i></div>
+          <div>
+            <div class="text-muted">Total Billed</div>
+            <div class="h5 mb-0">PKR {{ total_billed|default:0|floatformat:2 }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-xl-2">
+      <div class="kpi-card p-3 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon"><i class="bi bi-wallet2"></i></div>
+          <div>
+            <div class="text-muted">Total Received</div>
+            <div class="h5 mb-0">PKR {{ total_received|default:0|floatformat:2 }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-xl-2">
+      <div class="kpi-card p-3 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon"><i class="bi bi-cash-coin"></i></div>
+          <div>
+            <div class="text-muted">Outstanding (Due)</div>
+            <div class="h5 mb-0">PKR {{ outstanding|default:0|floatformat:2 }}</div>
+            <div class="small text-muted">Pending Due: PKR {{ pending_due|default:0|floatformat:2 }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-xl-2">
+      <div class="kpi-card p-3 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+          <div>
+            <div class="text-muted">Pending Orders</div>
+            <div class="h5 mb-0">{{ pending_orders|default:0 }}</div>
+            <div class="small text-muted">Unpaid {{ unpaid_orders|default:0 }} · Partial {{ partial_orders|default:0 }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-xl-2">
+      <div class="kpi-card p-3 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon"><i class="bi bi-truck"></i></div>
+          <div>
+            <div class="text-muted">Today’s Deliveries</div>
+            <div class="h5 mb-0">{{ today_deliveries|default:0 }}</div>
+            <div class="small text-muted">Next 7d: {{ upcoming_deliveries|default:0 }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Optional: Customers KPI -->
+    <div class="col-6 col-xl-2">
+      <div class="kpi-card p-3 h-100">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon"><i class="bi bi-people"></i></div>
+          <div>
+            <div class="text-muted">Customers</div>
+            <div class="h5 mb-0">{{ total_customers|default:0 }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Quick actions -->
+  <div class="quick-actions d-flex flex-wrap gap-2 mb-4">
+    <a href="{% url 'create_orders' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Create Order</a>
+    <a href="{% url 'list_orders' %}" class="btn btn-outline-primary"><i class="bi bi-list-ul me-1"></i>All Orders</a>
+    <a href="{% url 'list_customer' %}" class="btn btn-outline-secondary"><i class="bi bi-person-lines-fill me-1"></i>Customers</a>
+    {# Add more shortcuts if needed #}
+  </div>
+
+  <div class="row g-4">
+    <!-- Recent Orders -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Orders</h5>
+            <a href="{% url 'list_orders' %}" class="btn btn-sm btn-outline-primary">View all</a>
+          </div>
+
+          {% if recent_orders %}
+            <div class="table-responsive">
+              <table class="table align-middle">
+                <thead>
+                  <tr>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Delivery</th>
+                    <th class="text-end">Total (PKR)</th>
+                    <th class="text-end">Received (PKR)</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for o in recent_orders %}
+                  <tr>
+                    <td class="fw-semibold">{{ o.order_name }}</td>
+                    <td>{{ o.customer_name }}</td>
+                    <td>{{ o.delivery_date|date:"M d, Y" }}</td>
+                    <td class="text-end">{{ o.total_amount|floatformat:2 }}</td>
+                    <td class="text-end">{{ o.received_amount|floatformat:2 }}</td>
+                    <td>
+                      {% if o.total_amount|floatformat:2 == o.received_amount|floatformat:2 %}
+                        <span class="badge bg-success">Paid</span>
+                      {% elif o.received_amount|default:0 > 0 %}
+                        <span class="badge bg-warning text-dark">Partial</span>
+                      {% else %}
+                        <span class="badge bg-danger">Unpaid</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="text-center text-muted py-4">
+              <i class="bi bi-inboxes fs-3 d-block mb-2"></i>
+              No recent orders found. <a href="{% url 'create_orders' %}">Create your first order</a>.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Shortcuts / Tips -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <h6 class="text-muted mb-3"><i class="bi bi-lightbulb me-2"></i>Quick Tips</h6>
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2"><i class="bi bi-check2-circle me-2 text-success"></i>Keep customer phone numbers in +92 format.</li>
+            <li class="mb-2"><i class="bi bi-check2-circle me-2 text-success"></i>Use clear order names (e.g., “Books Set – Grade 6”).</li>
+            <li class="mb-2"><i class="bi bi-check2-circle me-2 text-success"></i>Record advances as “Received Amount”.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="text-muted mb-3"><i class="bi bi-link-45deg me-2"></i>Shortcuts</h6>
+          <div class="d-grid gap-2">
+            <a class="btn btn-outline-primary" href="{% url 'create_orders' %}">
+              <i class="bi bi-plus-circle me-1"></i> New Order
+            </a>
+            <a class="btn btn-outline-secondary" href="{% url 'list_customer' %}">
+              <i class="bi bi-people me-1"></i> Customers
+            </a>
+            <a class="btn btn-outline-dark" href="{% url 'list_orders' %}">
+              <i class="bi bi-list-ul me-1"></i> Order List
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // Tiny count-up (optional) – animates numbers in KPI if you pass context values
+  (function(){
+    const els = document.querySelectorAll('[data-count]');
+    els.forEach(el => {
+      const target = Number(el.getAttribute('data-count') || 0);
+      const duration = 700; // ms
+      const start = performance.now();
+      const from = 0;
+      function tick(now){
+        const p = Math.min(1, (now - start) / duration);
+        const val = Math.floor(from + (target - from) * p);
+        el.textContent = val.toLocaleString();
+        if (p < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+  })();
+</script>
+
+{% endblock %}

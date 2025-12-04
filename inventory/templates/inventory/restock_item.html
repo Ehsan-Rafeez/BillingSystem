@@ -1,0 +1,25 @@
+{% extends 'core/base.html' %}
+{% block title %}Restock {{ stock.name }}{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h5 class="mb-3">Restock {{ stock.name }}</h5>
+    <p>Current qty: {{ stock.quantity }} {{ stock.uom.abbreviation }}</p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Add Quantity</label>
+        <input type="number" step="0.01" min="0.01" name="restock_quantity" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Note (optional)</label>
+        <textarea name="note" class="form-control" rows="2"></textarea>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Restock</button>
+        <a href="{% url 'list_stock' %}" class="btn btn-light border">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

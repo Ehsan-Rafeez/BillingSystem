@@ -1,0 +1,123 @@
+{% extends 'core/base.html' %}
+{% block title %}Stock List{% endblock %}
+{% block content %}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+<div class="container mt-5">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4><i class="bi bi-boxes me-2"></i>Inventory Stock</h4>
+    <a href="{% url 'add_stock' %}" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-1"></i> Add Stock
+    </a>
+  </div>
+
+  <!-- ✅ Filters -->
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+      <input type="text" name="q" class="form-control" placeholder="Search by name, code, supplier..."
+             value="{{ query }}">
+    </div>
+    <div class="col-md-3">
+      <select name="status" class="form-select">
+        <option value="">All Status</option>
+        <option value="paid" {% if status == "paid" %}selected{% endif %}>Paid</option>
+        <option value="pending" {% if status == "pending" %}selected{% endif %}>Pending</option>
+        <option value="unpaid" {% if status == "unpaid" %}selected{% endif %}>Unpaid</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-secondary w-100"><i class="bi bi-funnel"></i> Filter</button>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Stock Code</th>
+          <th>Item</th>
+          <th>Category</th>
+          <th>Quantity</th>
+          <th>Min</th>
+          <th>UOM</th>
+          <th>Total</th>
+          <th>Paid</th>
+          <th>Remaining</th>
+          <th>Status</th>
+          <th>Payment Method</th>
+          <th>Supplier</th>
+          <th width="220">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for stock in stocks %}
+          <tr>
+            <td>{{ stock.stock_code }}</td>
+            <td>{{ stock.name }}</td>
+            <td>{{ stock.category }}</td>
+            <td>
+              {{ stock.quantity }}
+              {% if stock.low_stock %}
+                <span class="badge bg-danger ms-1">Low</span>
+              {% endif %}
+            </td>
+            <td>{{ stock.min_quantity }}</td>
+            <td>{{ stock.uom.abbreviation }}</td>
+            <td>PKR {{ stock.total_amount|floatformat:2 }}</td>
+            <td>PKR {{ stock.paid_amount|floatformat:2 }}</td>
+            <td>PKR {{ stock.remaining_amount|floatformat:2 }}</td>
+
+            <td>
+              {% if stock.status == "Paid" %}
+                <span class="badge bg-success">Paid</span>
+              {% elif stock.status == "Pending" %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% else %}
+                <span class="badge bg-danger">Unpaid</span>
+              {% endif %}
+            </td>
+
+            <td>{{ stock.payment_method }}</td>
+            <td>{{ stock.supplier_name }}</td>
+
+            <td>
+              <!-- ✅ Edit Button -->
+              <a href="{% url 'edit_stock' stock.id %}" class="btn btn-sm btn-info text-white">
+                <i class="bi bi-pencil-square"></i>
+              </a>
+              <a href="{% url 'restock_item' stock.id %}" class="btn btn-sm btn-success">
+                <i class="bi bi-arrow-up-circle"></i>
+              </a>
+
+              <!-- ✅ Delete Form -->
+              <form method="post" action="{% url 'delete_stock' stock.id %}" style="display:inline;"
+                    onsubmit="return confirm('Are you sure you want to delete this stock?');">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-danger">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+
+              <!-- ✅ Add Payment Inline -->
+              {% if stock.status != "Paid" %}
+              <form method="post" action="{% url 'add_payment' stock.id %}" style="display:inline;">
+                {% csrf_token %}
+                <input type="number" step="0.01" min="0" name="extra_payment"
+                       placeholder="PKR" style="width:90px; display:inline-block;" required>
+                <button class="btn btn-sm btn-success"><i class="bi bi-cash-coin"></i></button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="12" class="text-center text-muted">No stock found</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

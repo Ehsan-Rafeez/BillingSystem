@@ -1,106 +1,25 @@
-# --- Python bytecode / cache ---
+# Python
 __pycache__/
-*.py[cod]
-*$py.class
+*.pyc
+*.pyo
+*.pyd
 
-# --- C extensions ---
-*.so
-
-# --- Django specifics ---
-*.log
-local_settings.py
-
-# SQLite (if you use it locally)
-db.sqlite3
-*.sqlite3
-*.sqlite3-*
-*.sqlite3.bak
-
-# User uploads & collected static
-media/
-media_root/
-public/media/
-staticfiles/
-static_root/
-collected_static/
-public/static/
-
-# --- Django migrations (ignored, except __init__.py to keep package) ---
-**/migrations/*
-!**/migrations/__init__.py
-
-# --- Envs & secrets ---
+# Environments
+venv/
 .env
 .env.*
-*.env
-.envrc
-*.pem
-*.key
-*.crt
 
-# --- Virtual environments ---
-.venv/
-venv/
-env/
-ENV/
-env.bak/
-venv.bak/
-.python-version
-
-# --- Test / coverage ---
-.coverage
-.coverage.*
-htmlcov/
-.nox/
-.tox/
-.pytest_cache/
-.cache/
-nosetests.xml
-coverage.xml
-pytestdebug.log
-
-# --- Build / packaging ---
-.build/
-build/
-dist/
-downloads/
-eggs/
-.eggs/
-wheels/
-share/python-wheels/
-pip-wheel-metadata/
-pip-log.txt
-develop-eggs/
-sdist/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# --- Type checkers / linters ---
-.mypy_cache/
-.dmypy.json
-.pyre/
-.pytype/
-ruff_cache/
-
-# --- Editors / OS files ---
-.idea/
+# IDE/OS
 .vscode/
-*.code-workspace
-*.sublime-*
-.DS_Store
+.idea/
+*.swp
+*.swo
 Thumbs.db
-ehthumbs.db
-Desktop.ini
+.DS_Store
 
-# --- i18n compiled files ---
-*.mo
+# Django artifacts
+db.sqlite3
+*.log
 
-# --- Celery / Channels (if used) ---
-celerybeat-schedule
-celerybeat.pid
-
-# --- Temp ---
-tmp/
-*.tmp
+# Reports/exports
+*.csv

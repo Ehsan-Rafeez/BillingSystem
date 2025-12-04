@@ -1,0 +1,64 @@
+{% extends 'core/base.html' %}
+{% block title %}{% if is_edit %}Edit Menu Item{% else %}Create Menu Item{% endif %}{% endblock %}
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-1">{% if is_edit %}Edit Menu Item{% else %}Create Menu Item{% endif %}</h2>
+    <div class="text-muted">Define dishes/addons with pricing.</div>
+  </div>
+  <a class="btn btn-light border" href="{% url 'menu_list' %}"><i class="bi bi-arrow-left"></i> Back to menu</a>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Category</label>
+          {{ form.category }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Name</label>
+          {{ form.name }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Description</label>
+          {{ form.description }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Price per Portion</label>
+          {{ form.price_per_portion }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Buffet?</label>
+          {{ form.is_buffet }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Addon?</label>
+          {{ form.is_addon }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Active</label>
+          {{ form.is_active }}
+        </div>
+      </div>
+
+      <div class="mt-4 d-flex align-items-center gap-2">
+        <button type="submit" class="btn btn-primary">
+          {% if is_edit %}<i class="bi bi-save2"></i> Update{% else %}<i class="bi bi-plus-circle"></i> Create{% endif %}
+        </button>
+        <a href="{% url 'menu_list' %}" class="btn btn-light border">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

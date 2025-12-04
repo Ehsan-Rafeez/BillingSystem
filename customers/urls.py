@@ -1,12 +1,9 @@
-from django.urls import path, include
+from django.urls import path
+from . import views
 
-from .views import customers_index, CustomerListView,CustomerCreateView,CustomerIndexView,CustomerUpdateView, CustomerDeleteView
 urlpatterns = [
-    path('', CustomerIndexView.as_view(), name='customer_index'),  # Home page view
-
-    # Add more customer-related URLs here as needed
-    path('list/', CustomerListView.as_view(), name='customer_list'),
-    path('create/', CustomerCreateView.as_view(), name='create_customer'),
-    path('edit/<int:pk>/', CustomerUpdateView.as_view(), name='edit_customer'),
-    path('delete/<int:pk>/', CustomerDeleteView.as_view(), name='delete_customer'),
+    path('customers/', views.CustomerListView.as_view(), name='list_customer'),
+    path('customer/create/', views.CustomerCreateView.as_view(), name='create_customer'),
+    path('customer/edit/<int:pk>/', views.CustomerUpdateView.as_view(), name='edit_customer'),
+    path('customer/delete/<int:pk>/', views.CustomerDeleteView.as_view(), name='delete_customer'),
 ]

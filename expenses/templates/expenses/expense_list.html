@@ -1,0 +1,56 @@
+{% extends 'core/base.html' %}
+{% block title %}Expenses{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h2 class="mb-1">Expenses</h2>
+    <div class="text-muted">Track operational expenses.</div>
+  </div>
+  <a class="btn btn-primary" href="{% url 'expense_create' %}">Add Expense</a>
+</div>
+
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
+<div class="card shadow-sm">
+  <div class="card-body table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Date</th>
+          <th>Category</th>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>Supplier</th>
+          <th>Method</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for exp in expenses %}
+          <tr>
+            <td>{{ exp.date }}</td>
+            <td>{% if exp.category %}{{ exp.category.name }}{% else %}Uncategorized{% endif %}</td>
+            <td>{{ exp.description|truncatechars:50 }}</td>
+            <td>PKR {{ exp.amount }}</td>
+            <td>{{ exp.supplier_name|default:"-" }}</td>
+            <td>{{ exp.get_payment_method_display }}</td>
+            <td class="d-flex gap-2">
+              <a class="btn btn-sm btn-outline-secondary" href="{% url 'expense_update' exp.id %}">Edit</a>
+              <form method="post" action="{% url 'expense_delete' exp.id %}" onsubmit="return confirm('Delete this expense?')">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="text-center text-muted">No expenses yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

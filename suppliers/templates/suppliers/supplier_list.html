@@ -1,0 +1,89 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Suppliers{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">Suppliers</h3>
+                    <a href="{% url 'suppliers:supplier_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add New Supplier
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if suppliers %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Supplier ID</th>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>Phone</th>
+                                        <th>Email</th>
+                                        <th>Total Purchases</th>
+                                        <th>Total Paid</th>
+                                        <th>Balance Due</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for supplier in suppliers %}
+                                    <tr>
+                                        <td>{{ supplier.supplier_id }}</td>
+                                        <td>{{ supplier.name }}</td>
+                                        <td>{{ supplier.get_supplier_type_display }}</td>
+                                        <td>{{ supplier.phone }}</td>
+                                        <td>{{ supplier.email }}</td>
+                                        <td>${{ supplier.total_purchases|floatformat:2 }}</td>
+                                        <td>${{ supplier.total_paid|floatformat:2 }}</td>
+                                        <td>
+                                            <span class="badge {% if supplier.balance_due > 0 %}badge-danger{% else %}badge-success{% endif %}">
+                                                ${{ supplier.balance_due|floatformat:2 }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if supplier.is_active %}badge-success{% else %}badge-secondary{% endif %}">
+                                                {% if supplier.is_active %}Active{% else %}Inactive{% endif %}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'suppliers:supplier_detail' supplier.id %}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                            <a href="{% url 'suppliers:supplier_edit' supplier.id %}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                            <form method="post" action="{% url 'suppliers:supplier_delete' supplier.id %}" class="d-inline" onsubmit="return confirm('Are you sure?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <p class="text-muted">No suppliers found.</p>
+                            <a href="{% url 'suppliers:supplier_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add First Supplier
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

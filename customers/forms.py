@@ -4,7 +4,7 @@ from .models import Customer as CustomerModel
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = CustomerModel
-        fields = ["name", "customer_type", "phone", "email", "address"]
+        fields = ["name", "customer_type", "phone", "email", "address", "cnic", "tax_number", "notes"]
 
     def clean_name(self):
         print('clean_name called')
