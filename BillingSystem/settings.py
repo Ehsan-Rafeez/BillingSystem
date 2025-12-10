@@ -26,9 +26,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-ejn1*isi%2x3x#olw=7a6w+go*kl-oa1dsm8(wulo_9xn6e&*e'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', cast=bool, default=False)
 
-ALLOWED_HOSTS = []
+if DEBUG == False:
+    ALLOWED_HOSTS = ['160.238.36.107', 'paradisecatering.pk', 'www.paradisecatering.pk']
+else:
+    ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
