@@ -209,6 +209,7 @@
       <!-- Logout -->
       <a href="#" class="px-3 py-2 d-block">Logout</a>
     </div>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
     <!-- Main Content -->
     <div class="main-content">
@@ -220,9 +221,57 @@
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const toggleBtn = document.getElementById("sidebarToggle");
-        if (!toggleBtn) return;
-        toggleBtn.addEventListener("click", function () {
-          document.body.classList.toggle("sidebar-collapsed");
+        const body = document.body;
+        const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+        const MOBILE_BREAKPOINT = 992;
+
+        const applyInitialSidebarState = () => {
+          if (window.innerWidth < MOBILE_BREAKPOINT) {
+            body.classList.add("sidebar-collapsed");
+            body.classList.remove("sidebar-open");
+          } else {
+            body.classList.remove("sidebar-collapsed", "sidebar-open");
+          }
+        };
+
+        if (toggleBtn) {
+          toggleBtn.addEventListener("click", function () {
+            if (window.innerWidth < MOBILE_BREAKPOINT) {
+              body.classList.toggle("sidebar-open");
+            } else {
+              body.classList.toggle("sidebar-collapsed");
+            }
+          });
+        }
+
+        if (sidebarBackdrop) {
+          sidebarBackdrop.addEventListener("click", () => {
+            body.classList.remove("sidebar-open");
+          });
+        }
+
+        document.querySelectorAll("#sidebarMenu a").forEach((link) => {
+          link.addEventListener("click", () => {
+            if (window.innerWidth < MOBILE_BREAKPOINT) {
+              body.classList.remove("sidebar-open");
+            }
+          });
+        });
+
+        window.addEventListener("resize", () => {
+          applyInitialSidebarState();
+        });
+
+        applyInitialSidebarState();
+
+        // Ensure every table is scrollable on small screens without editing individual templates
+        document.querySelectorAll("table").forEach((table) => {
+          if (!table.closest(".table-responsive")) {
+            const wrapper = document.createElement("div");
+            wrapper.className = "table-responsive";
+            table.parentNode.insertBefore(wrapper, table);
+            wrapper.appendChild(table);
+          }
         });
       });
     </script>
