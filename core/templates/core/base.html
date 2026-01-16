@@ -207,7 +207,10 @@
       </ul>
 
       <!-- Logout -->
-      <a href="#" class="px-3 py-2 d-block">Logout</a>
+      <form method="post" action="{% url 'logout' %}" class="px-3 py-2">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-light w-100 text-start">Logout</button>
+      </form>
     </div>
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 

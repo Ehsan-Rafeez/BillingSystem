@@ -4,77 +4,292 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Billing System | Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <style>
+    :root {
+      --ink: #0a101f;
+      --night: #0c1b33;
+      --accent: #14f1c6;
+      --accent-2: #7ae4ff;
+      --card: rgba(255, 255, 255, 0.04);
+      --stroke: rgba(255, 255, 255, 0.1);
+      --text: #e9f2ff;
+      --muted: #a7b5ce;
+    }
+    * { box-sizing: border-box; }
     body {
       min-height: 100vh;
-      background: linear-gradient(135deg, #0d6efd 0%, #5aa2ff 100%);
+      margin: 0;
+      background: radial-gradient(1200px at 10% 20%, rgba(20, 241, 198, 0.12), transparent),
+                  radial-gradient(900px at 80% 0%, rgba(122, 228, 255, 0.18), transparent),
+                  linear-gradient(135deg, #040914, #0d1f38 55%, #0b1630);
+      color: var(--text);
+      font-family: 'Space Grotesk', 'Manrope', sans-serif;
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-    .login-card {
-      border: none;
-      border-radius: 1rem;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      padding: 2rem 1.25rem;
+      position: relative;
       overflow: hidden;
     }
-    .login-header {
-      background: #0d6efd;
-      color: #fff;
-      padding: 1.25rem;
-      text-align: center;
+    body::after {
+      content: '';
+      position: absolute;
+      inset: 10% 15%;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.06), transparent 40%),
+                  radial-gradient(circle at 70% 60%, rgba(20,241,198,0.08), transparent 45%);
+      filter: blur(40px);
+      z-index: 0;
     }
-    .logo-circle {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: #fff;
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 80px 80px;
+      mask-image: radial-gradient(circle at center, rgba(0,0,0,0.22), transparent 65%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .auth-shell {
+      position: relative;
+      max-width: 1200px;
+      width: 100%;
+      z-index: 2;
+    }
+    .brand-panel {
+      background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      border: 1px solid var(--stroke);
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: 0 30px 120px rgba(0,0,0,0.35);
+      position: relative;
+      overflow: hidden;
+    }
+    .brand-panel::after {
+      content: '';
+      position: absolute;
+      top: -120px;
+      right: -80px;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(20,241,198,0.25), transparent 55%);
+      filter: blur(8px);
+    }
+    .brand-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      background: rgba(20,241,198,0.15);
+      color: var(--accent);
+      padding: .35rem .75rem;
+      border-radius: 999px;
+      border: 1px solid rgba(20,241,198,0.4);
+      font-size: .9rem;
+      letter-spacing: .5px;
+    }
+    .brand-title {
+      font-size: clamp(2rem, 3vw, 2.6rem);
+      font-weight: 700;
+      margin: 1rem 0 .75rem;
+      color: #f6fbff;
+      line-height: 1.2;
+    }
+    .brand-copy {
+      color: var(--muted);
+      max-width: 480px;
+      font-size: 1.05rem;
+    }
+    .pill-stack {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .75rem;
+      margin-top: 1.25rem;
+    }
+    .pill {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--stroke);
+      border-radius: 999px;
+      color: #d9e6ff;
+      padding: .65rem 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      font-weight: 600;
+    }
+    .pill i { color: var(--accent); }
+    .auth-card {
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: 18px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 28px 90px rgba(0,0,0,0.45);
+      overflow: hidden;
+    }
+    .auth-top {
+      padding: 1.5rem 1.5rem 1rem;
+      border-bottom: 1px solid var(--stroke);
+    }
+    .badge-logo {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(20,241,198,0.16), rgba(122,228,255,0.16));
+      border: 1px solid rgba(255,255,255,0.18);
       display: grid;
       place-items: center;
-      color: #0d6efd;
+      color: #fefefe;
       font-weight: 800;
-      margin: 0 auto 0.5rem;
-      box-shadow: 0 6px 18px rgba(255,255,255,0.3);
+      font-size: 1.25rem;
+      margin-bottom: .75rem;
     }
-    .form-control {
-      border-radius: .75rem;
-      padding: .75rem;
+    .auth-title { font-size: 1.4rem; font-weight: 700; margin: 0; }
+    .auth-sub { color: var(--muted); margin: .35rem 0 0; }
+    .card-body { padding: 1.5rem; }
+    .alert {
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(255,87,87,0.1);
+      color: #ffc4c4;
     }
-    .btn-primary {
-      border-radius: .75rem;
-      padding: .7rem;
+    .field {
+      margin-bottom: 1rem;
+    }
+    .field label {
+      display: block;
+      margin-bottom: .35rem;
       font-weight: 600;
-      box-shadow: 0 10px 25px rgba(13,110,253,0.3);
+      color: #f2f6ff;
+      letter-spacing: 0.2px;
+    }
+    .input-shell {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--stroke);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      padding: .15rem .75rem;
+      transition: border-color .2s ease, box-shadow .2s ease, transform .15s ease;
+    }
+    .input-shell:focus-within {
+      border-color: rgba(20,241,198,0.55);
+      box-shadow: 0 10px 30px rgba(20,241,198,0.18);
+      transform: translateY(-1px);
+    }
+    .input-shell i {
+      color: var(--accent);
+      font-size: 1.1rem;
+    }
+    .input-shell input {
+      background: transparent;
+      border: none;
+      color: #fdfdfd;
+      width: 100%;
+      padding: .75rem .25rem;
+      outline: none;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    .input-shell input::placeholder { color: rgba(233,242,255,0.5); }
+    .btn-submit {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: .95rem 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #051322;
+      box-shadow: 0 18px 40px rgba(20,241,198,0.25);
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 20px 50px rgba(122,228,255,0.28); }
+    .btn-submit:active { transform: translateY(0); box-shadow: 0 12px 28px rgba(122,228,255,0.2); }
+    .supporting {
+      margin-top: 1rem;
+      color: var(--muted);
+      font-size: .95rem;
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+    }
+    .supporting i { color: var(--accent); }
+    @media (max-width: 991px) {
+      body { padding: 1.5rem 1rem; }
+      .brand-panel { margin-bottom: 1.25rem; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-md-5 col-lg-4">
-        <div class="card login-card">
-          <div class="login-header">
-            <div class="logo-circle">B</div>
-            <div class="fw-semibold">Billing System</div>
-            <small class="text-white-50">Sign in to continue</small>
+  <div class="grid-overlay"></div>
+  <div class="auth-shell container">
+    <div class="row g-4 align-items-center">
+      <div class="col-lg-6">
+        <div class="brand-panel">
+          <div class="brand-kicker">
+            <i class="bi bi-activity"></i>
+            Billing Ops Control
           </div>
-          <div class="card-body p-4">
-            {% if form.errors %}
+          <h1 class="brand-title">Faster billing decisions with a calmer sign in.</h1>
+          <p class="brand-copy">Securely access invoices, payouts, and supplier intelligence in one place. Beautiful data and reliable controls, right from the first click.</p>
+          <div class="pill-stack">
+            <span class="pill"><i class="bi bi-lightning-charge-fill"></i>Live revenue pulse</span>
+            <span class="pill"><i class="bi bi-shield-lock-fill"></i>Two-step security ready</span>
+            <span class="pill"><i class="bi bi-graph-up"></i>Operational clarity</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-5 offset-lg-1">
+        <div class="auth-card">
+          <div class="auth-top">
+            <div class="badge-logo">B</div>
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <div class="auth-title">Welcome back</div>
+                <div class="auth-sub">Sign in to continue</div>
+              </div>
+              <div class="supporting"><i class="bi bi-clock-history"></i>Stay signed in for the next session</div>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if form.errors or form.non_field_errors %}
               <div class="alert alert-danger">Invalid credentials. Please try again.</div>
             {% endif %}
             <form method="post" action="{% url 'login' %}">
               {% csrf_token %}
-              <div class="mb-3">
-                <label class="form-label">Username</label>
-                {{ form.username }}
+              {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+              <div class="field">
+                <label for="{{ form.username.id_for_label }}">Username</label>
+                <div class="input-shell">
+                  <i class="bi bi-person-badge"></i>
+                  <input type="text"
+                         name="{{ form.username.html_name }}"
+                         id="{{ form.username.id_for_label }}"
+                         value="{{ form.username.value|default_if_none:'' }}"
+                         placeholder="you@billing.studio"
+                         autocomplete="username"
+                         required>
+                </div>
+                {{ form.username.errors }}
               </div>
-              <div class="mb-3">
-                <label class="form-label">Password</label>
-                {{ form.password }}
+              <div class="field">
+                <label for="{{ form.password.id_for_label }}">Password</label>
+                <div class="input-shell">
+                  <i class="bi bi-shield-lock"></i>
+                  <input type="password"
+                         name="{{ form.password.html_name }}"
+                         id="{{ form.password.id_for_label }}"
+                         placeholder="••••••••"
+                         autocomplete="current-password"
+                         required>
+                </div>
+                {{ form.password.errors }}
               </div>
-              <button type="submit" class="btn btn-primary w-100">Login</button>
+              <button type="submit" class="btn-submit">Enter workspace</button>
             </form>
           </div>
         </div>
