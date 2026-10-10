@@ -47,6 +47,9 @@
   /* ===== Table ===== */
   .table thead th{ position:sticky; top:0; z-index:1; }
   .table-hover tbody tr:hover{ background:#f8fafc; }
+  .primary-cell { min-width: 180px; }
+  .contact-cell { min-width: 170px; }
+  .money-cell { min-width: 115px; white-space: nowrap; }
   .badge-soft{
     border:1px solid rgba(0,0,0,.06); font-weight:600;
     padding:.35rem .6rem; border-radius:999px;
@@ -72,9 +75,17 @@
   @media(max-width:992px){ .stats{ grid-template-columns: repeat(2,1fr);} }
   @media(max-width:576px){
     .page-head{ flex-direction:column; align-items:stretch; }
+    .title-wrap{ align-items:flex-start; }
     .filters{ gap:.4rem; }
-    .filters .form-control, .filters .form-select{ min-width:unset; flex:1; }
+    .filters .input-group,
+    .filters .form-control,
+    .filters .form-select,
+    .filters .btn,
+    .filters a.btn{ min-width:100%; flex:1 1 100%; }
+    .stats{ grid-template-columns: 1fr; }
+    .fx-body{ padding:.65rem; }
     .action-label{ display:none; }
+    .action-btn{ min-width: 2.35rem; justify-content:center; padding:.5rem; }
   }
 </style>
 
@@ -111,7 +122,7 @@
     <div class="v" id="statOrders">-</div>
   </div>
   <div class="stat total">
-    <div class="k">Total Amount</div>
+    <div class="k">Net Total</div>
     <div class="v" id="statTotal">PKR 0.00</div>
   </div>
   <div class="stat rece">
@@ -136,17 +147,10 @@
           <tr>
             <th>ID</th>
             <th>Order Date</th>
-            <th>Customer Name</th>
-            <th>Event</th>
-            <th>Phone</th>
-            {% comment %} <th>Customer Type</th> <!-- Added Customer Type --> {% endcomment %}
-            <th>Email</th> <!-- Added Email -->
-            <th>Address</th> <!-- Added Address -->
-            <th>Cnic Number</th>
-            <th>Delivery Date</th>
-            <th>Total Amount</th>
-            <th>Received Amount</th>
-            <th>Due Amount</th>
+            <th>Customer</th>
+            <th>Food Delivery</th>
+            <th>Net Total</th>
+            <th>Due</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
@@ -165,22 +169,23 @@
             data-cnic="{{ order.cnic_number|lower }}"
             data-date="{{ order.delivery_date|date:'Y-m-d' }}"
             data-total="{{ order.total_amount }}"
+            data-discount="{{ order.discount_amount }}"
             data-received="{{ order.received_amount }}"
             data-due="{{ order.due_amount }}"
           >
             <td>{{ order.id }}</td>
             <td>{{ order.order_date }}</td>
-            <td>{{ order.customer_name }}</td>
-            <td>{% if order.event %}{{ order.event.title }} ({{ order.event.event_date }}){% else %}-{% endif %}</td>
-            <td>{{ order.phone_number }}</td>
-            {% comment %} <td>{{ order.customer_type }}</td> <!-- Display Customer Type --> {% endcomment %}
-            <td>{{ order.email }}</td> <!-- Display Email -->
-            <td>{{ order.address }}</td> <!-- Display Address -->
-            <td>{{ order.cnic_number }}</td>
-            <td>{{ order.delivery_date }}</td>
-            <td>PKR {{ order.total_amount }}</td>
-            <td>PKR {{ order.received_amount }}</td>
-            <td>
+            <td class="primary-cell">
+              <div class="fw-semibold">{{ order.customer_name }}</div>
+              <div class="text-muted small">{{ order.phone_number }}</div>
+              {% if order.event %}<div class="text-muted small">{{ order.event.title }}</div>{% endif %}
+            </td>
+            <td class="contact-cell">
+              {{ order.delivery_date }}
+              {% if order.delivery_time %}<div class="text-muted small">{{ order.delivery_time|time:'h:i A' }}</div>{% endif %}
+            </td>
+            <td class="money-cell">PKR {{ order.total_amount }}</td>
+            <td class="money-cell">
               {% with due=order.due_amount|default_if_none:0 %}
                 {% if due == 0 %}
                   <span class="badge-soft badge-due-0">PKR {{ due }}</span>
@@ -206,6 +211,14 @@
                    data-type="add"
                    data-href="{% url 'payment_entry' order.id %}">
                   <i class="bi bi-cash-coin"></i><span class="action-label">Add Payment</span>
+                </a>
+
+                <a href="{% url 'order_invoice' order.id %}"
+                   class="action-btn action-edit"
+                   data-action="View Invoice"
+                   data-type="invoice"
+                   data-href="{% url 'order_invoice' order.id %}">
+                  <i class="bi bi-receipt"></i><span class="action-label">Invoice</span>
                 </a>
 
                 <a href="{% url 'edit_order' order.id %}"
@@ -243,7 +256,7 @@
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="13" class="text-center">No orders found.</td></tr>
+          <tr><td colspan="8" class="text-center">No orders found.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -290,6 +303,8 @@
       const cust    = tr.dataset.customer || '';
       const ev      = tr.dataset.event || '';
       const phone   = tr.dataset.phone || '';
+      const email   = tr.dataset.email || '';
+      const address = tr.dataset.address || '';
       const cnic    = tr.dataset.cnic || '';
       const dStr    = tr.dataset.date || '';
       const dVal    = dStr ? new Date(dStr) : null;
@@ -297,7 +312,7 @@
       const rec     = toNum(tr.dataset.received);
       const due     = toNum(tr.dataset.due);
 
-      const textHit = !query || order.includes(query) || cust.includes(query) || phone.includes(query) || ev.includes(query);
+      const textHit = !query || order.includes(query) || cust.includes(query) || phone.includes(query) || ev.includes(query) || email.includes(query) || address.includes(query) || cnic.includes(query);
       const dateHit = dateOk(dVal, f, t);
       const dueHit  = (mode==='all') || (mode==='due' && due>0) || (mode==='clear' && due<=0);
 
@@ -362,6 +377,11 @@
       text = 'You will be taken to the payment entry page.';
       confirmText = 'Proceed';
       confirmColor = '#198754';
+    } else if(type === 'invoice'){
+      icon = 'question';
+      title = 'Open invoice?';
+      text = 'You will be taken to the invoice page.';
+      confirmText = 'Open';
     } else if(type === 'deliver'){
       icon = 'question';
       title = 'Mark as delivered?';

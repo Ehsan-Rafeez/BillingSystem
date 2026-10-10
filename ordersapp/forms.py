@@ -46,9 +46,23 @@ class EventForm(forms.ModelForm):
 class MenuItemForm(forms.ModelForm):
     class Meta:
         model = MenuItem
-        fields = ["category", "name", "description", "price_per_portion", "is_buffet", "is_addon", "is_active"]
+        fields = [
+            "category",
+            "name",
+            "description",
+            "price_per_portion",
+            "pricing_unit",
+            "is_buffet",
+            "is_addon",
+            "is_active",
+            "needs_attention",
+        ]
         widgets = {
             "description": forms.Textarea(attrs={"rows": 3, "class": "form-control"}),
+            "is_buffet": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
+            "is_addon": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
+            "needs_attention": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
         }
 
     def __init__(self, *args, **kwargs):

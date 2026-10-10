@@ -4,17 +4,18 @@ from django.db.models import Sum
 from .models import Supplier, SupplierPayment, PurchaseOrder, PurchaseOrderItem
 from .forms import SupplierForm, SupplierPaymentForm, PurchaseOrderForm
 from inventory.models import InventoryItem
+from core.tenancy import assign_shop, tenant_get_object_or_404, tenant_queryset
 
 
 def supplier_list(request):
     """Display list of all suppliers"""
-    suppliers = Supplier.objects.all().order_by('name')
+    suppliers = tenant_queryset(request, Supplier.objects.all()).order_by('name')
     return render(request, 'suppliers/supplier_list.html', {'suppliers': suppliers})
 
 
 def supplier_detail(request, supplier_id):
     """Display detailed view of a supplier with payments and purchase orders"""
-    supplier = get_object_or_404(Supplier, id=supplier_id)
+    supplier = tenant_get_object_or_404(request, Supplier.objects.all(), id=supplier_id)
     payments = supplier.payments.all().order_by('-payment_date')
     purchase_orders = supplier.purchase_orders.all().order_by('-order_date')
     
@@ -39,7 +40,9 @@ def supplier_create(request):
     if request.method == 'POST':
         form = SupplierForm(request.POST)
         if form.is_valid():
-            supplier = form.save()
+            supplier = form.save(commit=False)
+            assign_shop(request, supplier)
+            supplier.save()
             messages.success(request, f'Supplier "{supplier.name}" created successfully!')
             return redirect('suppliers:supplier_detail', supplier_id=supplier.id)
     else:
@@ -53,12 +56,14 @@ def supplier_create(request):
 
 def supplier_edit(request, supplier_id):
     """Edit an existing supplier"""
-    supplier = get_object_or_404(Supplier, id=supplier_id)
+    supplier = tenant_get_object_or_404(request, Supplier.objects.all(), id=supplier_id)
     
     if request.method == 'POST':
         form = SupplierForm(request.POST, instance=supplier)
         if form.is_valid():
-            form.save()
+            supplier = form.save(commit=False)
+            assign_shop(request, supplier)
+            supplier.save()
             messages.success(request, f'Supplier "{supplier.name}" updated successfully!')
             return redirect('suppliers:supplier_detail', supplier_id=supplier.id)
     else:
@@ -73,7 +78,7 @@ def supplier_edit(request, supplier_id):
 
 def payment_create(request, supplier_id):
     """Create a new payment for a supplier"""
-    supplier = get_object_or_404(Supplier, id=supplier_id)
+    supplier = tenant_get_object_or_404(request, Supplier.objects.all(), id=supplier_id)
     
     if request.method == 'POST':
         form = SupplierPaymentForm(request.POST)
@@ -95,7 +100,7 @@ def payment_create(request, supplier_id):
 
 def purchase_order_list(request):
     """Display list of all purchase orders"""
-    purchase_orders = PurchaseOrder.objects.all().order_by('-order_date')
+    purchase_orders = PurchaseOrder.objects.filter(supplier__in=tenant_queryset(request, Supplier.objects.all())).order_by('-order_date')
     return render(request, 'suppliers/purchase_order_list.html', {
         'purchase_orders': purchase_orders
     })
@@ -103,7 +108,10 @@ def purchase_order_list(request):
 
 def purchase_order_detail(request, po_id):
     """Display detailed view of a purchase order"""
-    purchase_order = get_object_or_404(PurchaseOrder, id=po_id)
+    purchase_order = get_object_or_404(
+        PurchaseOrder.objects.filter(supplier__in=tenant_queryset(request, Supplier.objects.all())),
+        id=po_id,
+    )
     items = purchase_order.items.all()
     
     return render(request, 'suppliers/purchase_order_detail.html', {
@@ -117,7 +125,11 @@ def purchase_order_create(request):
     if request.method == 'POST':
         form = PurchaseOrderForm(request.POST)
         if form.is_valid():
-            purchase_order = form.save()
+            purchase_order = form.save(commit=False)
+            if not request.user.is_superuser and purchase_order.supplier.shop_id != getattr(request.shop, "id", None):
+                messages.error(request, "Invalid supplier for this shop.")
+                return redirect('suppliers:purchase_order_list')
+            purchase_order.save()
             messages.success(request, f'Purchase Order {purchase_order.order_number} created successfully!')
             return redirect('suppliers:purchase_order_detail', po_id=purchase_order.id)
     else:
@@ -131,7 +143,7 @@ def purchase_order_create(request):
 
 def supplier_delete(request, supplier_id):
     """Delete a supplier (soft delete by deactivating if referenced)."""
-    supplier = get_object_or_404(Supplier, id=supplier_id)
+    supplier = tenant_get_object_or_404(request, Supplier.objects.all(), id=supplier_id)
     has_refs = supplier.purchase_orders.exists() or supplier.payments.exists()
     if request.method == 'POST':
         if has_refs:

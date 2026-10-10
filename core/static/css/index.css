@@ -4,6 +4,16 @@ body {
   overflow-x: hidden;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+}
+
 /* Sidebar hidden by default */
 .sidebar-menu {
   height: calc(100vh - 56px);
@@ -61,12 +71,37 @@ body.sidebar-collapsed .sidebar-menu {
 /* Content */
 .main-content {
   transition: margin-left 0.3s ease;
-  padding: 70px 40px 40px 40px;
+  padding: 70px 24px 40px 24px;
   margin-left: 240px;
+  min-width: 0;
 }
 
 body.sidebar-collapsed .main-content {
   margin-left: 0;
+}
+
+.app-container {
+  max-width: 1600px;
+  min-width: 0;
+}
+
+.card,
+.row,
+.col,
+[class*="col-"] {
+  min-width: 0;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.btn,
+.form-control,
+.form-select,
+.input-group-text {
+  min-height: 40px;
 }
 
 /* Styles for collapsible submenu */
@@ -193,6 +228,21 @@ body.sidebar-open .sidebar-backdrop {
 
   .main-content {
     padding: 76px 12px 24px 12px;
+  }
+
+  .app-container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  h1,
+  .h1 {
+    font-size: 1.7rem;
+  }
+
+  h2,
+  .h2 {
+    font-size: 1.45rem;
   }
 }
 

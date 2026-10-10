@@ -10,6 +10,7 @@ from django.utils import timezone
 
 from .models import Expense, ExpenseCategory
 from .forms import ExpenseForm, ExpenseCategoryForm
+from core.tenancy import assign_shop, tenant_get_object_or_404, tenant_queryset
 
 
 def _parse_date_any(val):
@@ -27,7 +28,7 @@ def _parse_date_any(val):
 
 
 def expense_list(request):
-    expenses = Expense.objects.select_related("category").all()
+    expenses = tenant_queryset(request, Expense.objects.select_related("category")).all()
     return render(request, "expenses/expense_list.html", {"expenses": expenses})
 
 
@@ -35,7 +36,9 @@ def expense_create(request):
     if request.method == "POST":
         form = ExpenseForm(request.POST)
         if form.is_valid():
-            form.save()
+            expense = form.save(commit=False)
+            assign_shop(request, expense)
+            expense.save()
             messages.success(request, "Expense recorded.")
             return redirect("expense_list")
         messages.error(request, "Please fix errors below.")
@@ -45,11 +48,13 @@ def expense_create(request):
 
 
 def expense_update(request, pk):
-    expense = get_object_or_404(Expense, pk=pk)
+    expense = tenant_get_object_or_404(request, Expense.objects.all(), pk=pk)
     if request.method == "POST":
         form = ExpenseForm(request.POST, instance=expense)
         if form.is_valid():
-            form.save()
+            expense = form.save(commit=False)
+            assign_shop(request, expense)
+            expense.save()
             messages.success(request, "Expense updated.")
             return redirect("expense_list")
         messages.error(request, "Please fix errors below.")
@@ -59,7 +64,7 @@ def expense_update(request, pk):
 
 
 def expense_delete(request, pk):
-    expense = get_object_or_404(Expense, pk=pk)
+    expense = tenant_get_object_or_404(request, Expense.objects.all(), pk=pk)
     if request.method == "POST":
         expense.delete()
         messages.success(request, "Expense deleted.")
@@ -79,7 +84,7 @@ def expense_report(request):
     start_dt = timezone.make_aware(datetime.combine(start, time.min), tz) if start else None
     end_dt = timezone.make_aware(datetime.combine(end, time.max), tz) if end else None
 
-    qs = Expense.objects.select_related("category").all()
+    qs = tenant_queryset(request, Expense.objects.select_related("category")).all()
     if start_dt and end_dt:
         qs = qs.filter(date__range=(start, end))
     elif start_dt:
@@ -106,13 +111,13 @@ def expense_report(request):
         "total": total,
         "start": start_raw,
         "end": end_raw,
-        "categories": ExpenseCategory.objects.order_by("name"),
+        "categories": tenant_queryset(request, ExpenseCategory.objects.all()).order_by("name"),
         "selected_category": category_id,
     })
 
 
 def expense_category_list(request):
-    categories = ExpenseCategory.objects.order_by("name")
+    categories = tenant_queryset(request, ExpenseCategory.objects.all()).order_by("name")
     return render(request, "expenses/category_list.html", {"categories": categories})
 
 
@@ -120,7 +125,9 @@ def expense_category_create(request):
     if request.method == "POST":
         form = ExpenseCategoryForm(request.POST)
         if form.is_valid():
-            form.save()
+            category = form.save(commit=False)
+            assign_shop(request, category)
+            category.save()
             messages.success(request, "Category created.")
             return redirect("expense_category_list")
         messages.error(request, "Please fix errors below.")
@@ -130,11 +137,13 @@ def expense_category_create(request):
 
 
 def expense_category_update(request, pk):
-    category = get_object_or_404(ExpenseCategory, pk=pk)
+    category = tenant_get_object_or_404(request, ExpenseCategory.objects.all(), pk=pk)
     if request.method == "POST":
         form = ExpenseCategoryForm(request.POST, instance=category)
         if form.is_valid():
-            form.save()
+            category = form.save(commit=False)
+            assign_shop(request, category)
+            category.save()
             messages.success(request, "Category updated.")
             return redirect("expense_category_list")
         messages.error(request, "Please fix errors below.")

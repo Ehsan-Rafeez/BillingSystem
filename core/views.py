@@ -1,16 +1,21 @@
 from datetime import date, timedelta
 from django.db.models import Sum, Count, F, Case, When, DecimalField, Value
 from django.db.models.functions import Coalesce
-from django.shortcuts import render
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
 
 from ordersapp.models import Order  # apka model
+from core.tenancy import tenant_queryset
+from .forms import ShopInvoiceSettingsForm
 
 def index(request):
     today = date.today()
     next_7 = today + timedelta(days=7)
+    orders = tenant_queryset(request, Order.objects.all())
 
     # Aggregates
-    totals = Order.objects.aggregate(
+    totals = orders.aggregate(
         total_orders=Count("id"),
         total_billed=Coalesce(Sum("total_amount"), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)),
         total_received=Coalesce(Sum("received_amount"), Value(0), output_field=DecimalField(max_digits=12, decimal_places=2)),
@@ -29,21 +34,21 @@ def index(request):
     )
 
     # Status counts
-    status_counts = Order.objects.aggregate(
+    status_counts = orders.aggregate(
         unpaid=Count(Case(When(received_amount__lte=0, then=1))),
         partial=Count(Case(When(received_amount__gt=0, total_amount__gt=F("received_amount"), then=1))),
         paid=Count(Case(When(total_amount__lte=F("received_amount"), then=1))),
     )
 
     # Deliveries
-    todays_deliveries = Order.objects.filter(delivery_date=today).count()
-    upcoming_deliveries = Order.objects.filter(delivery_date__gt=today, delivery_date__lte=next_7).count()
+    todays_deliveries = orders.filter(delivery_date=today).count()
+    upcoming_deliveries = orders.filter(delivery_date__gt=today, delivery_date__lte=next_7).count()
 
     # Customers
-    total_customers = Order.objects.values("customer_name").distinct().count()
+    total_customers = orders.values("customer_name").distinct().count()
 
     # Recent orders
-    recent_orders = Order.objects.order_by("-id")[:8]
+    recent_orders = orders.order_by("-id")[:8]
 
     context = {
         "total_orders": totals["total_orders"] or 0,
@@ -62,3 +67,23 @@ def index(request):
     }
 
     return render(request, "core/index.html", context)
+
+
+@login_required
+def shop_settings(request):
+    shop = getattr(request, "shop", None)
+    if shop is None:
+        messages.error(request, "No active shop is assigned to this account.")
+        return redirect("index")
+
+    if request.method == "POST":
+        form = ShopInvoiceSettingsForm(request.POST, request.FILES, instance=shop)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Invoice settings updated.")
+            return redirect("shop_settings")
+        messages.error(request, "Please fix the errors below.")
+    else:
+        form = ShopInvoiceSettingsForm(instance=shop)
+
+    return render(request, "core/shop_settings.html", {"form": form, "shop": shop})

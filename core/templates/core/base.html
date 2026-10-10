@@ -23,8 +23,18 @@
       <div class="container-fluid">
         <div class="d-flex align-items-center gap-2">
           <a class="navbar-brand d-flex align-items-center" href="{% url 'list_orders' %}">
-            <span class="brand-text me-2 fw-bold">Billing System</span>
-            <img src="{% static 'images/icons8-school-48.png' %}" alt="School Logo" class="brand-logo" />
+            <span class="brand-text me-2 fw-bold">
+              {% if request.shop %}
+                {{ request.shop.invoice_shop_name|default:request.shop.name }}
+              {% else %}
+                Billing System
+              {% endif %}
+            </span>
+            {% if request.shop and request.shop.invoice_logo %}
+              <img src="{{ request.shop.invoice_logo.url }}" alt="{{ request.shop.name }} Logo" class="brand-logo" />
+            {% else %}
+              <img src="{% static 'images/icons8-school-48.png' %}" alt="Billing System Logo" class="brand-logo" />
+            {% endif %}
           </a>
           <button class="sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
             <span></span>
@@ -82,6 +92,9 @@
           <a class="dropdown-item" href="{% url 'menu_list' %}">Menus</a>
         </li>
         <li>
+          <a class="dropdown-item" href="{% url 'category_list' %}">Menu Categories</a>
+        </li>
+        <li>
           <a class="dropdown-item" href="{% url 'quote_list' %}">Quotes</a>
         </li>
         <li>
@@ -104,9 +117,9 @@
           Stock
         </a>
         <ul class="collapse list-unstyled ps-3" id="stockSubmenu">
-          <li>
+          <!-- <li>
             <a class="dropdown-item" href="{% url 'add_stock' %}">Add Stock</a>
-          </li>
+          </li> -->
           <li>
             <a class="dropdown-item" href="{% url 'list_stock' %}">List Stock</a>
           </li>
@@ -119,10 +132,10 @@
           Inventory Items
         </a>
         <ul class="collapse list-unstyled ps-3" id="inventoryItemsSubmenu">
-          <li>
+          <!-- <li>
             <a class="dropdown-item" href="{% url 'add_inventory' %}">Add Inventory</a>
           </li>
-          <li>
+          <li> -->
             <a class="dropdown-item" href="{% url 'list_inventory' %}">List Inventory</a>
           </li>
           <li>
@@ -206,6 +219,8 @@
         </li>
       </ul>
 
+      <a href="{% url 'shop_settings' %}">Settings</a>
+
       <!-- Logout -->
       <form method="post" action="{% url 'logout' %}" class="px-3 py-2">
         {% csrf_token %}
@@ -216,7 +231,7 @@
 
     <!-- Main Content -->
     <div class="main-content">
-      <div class="container mt-5 pt-4">{% block content %}{% endblock %}</div>
+      <div class="container-fluid app-container mt-5 pt-4">{% block content %}{% endblock %}</div>
     </div>
 
     <!-- Bootstrap JS -->

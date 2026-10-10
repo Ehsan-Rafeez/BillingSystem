@@ -1,11 +1,12 @@
 from django.db import models
-from core.models import TimeStampedModel
+from core.models import TimeStampedModel, Shop
 
 class Customer(TimeStampedModel):
     BUSINESS, INDIVIDUAL = "BUS", "IND"
     TYPES = [(BUSINESS, "Business"), (INDIVIDUAL, "Individual")]
     
     # Customer Fields
+    shop = models.ForeignKey(Shop, on_delete=models.PROTECT, null=True, blank=True, related_name="customers")
     customer_id = models.CharField(max_length=100, unique=True, blank=True, null=True)  # Auto-generated ID
     name = models.CharField(max_length=255)
     customer_type = models.CharField(max_length=3, choices=TYPES, default=BUSINESS)

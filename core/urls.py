@@ -1,7 +1,7 @@
-from django.urls import path, include
+from django.urls import path
 
-from .views import index
+from . import views
 urlpatterns = [
-    path('', index, name='index'),  # Home page view
-    # Add other URL patterns here as needed
+    path('', views.index, name='index'),
+    path('settings/', views.shop_settings, name='shop_settings'),
 ]

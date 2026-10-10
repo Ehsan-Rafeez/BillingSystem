@@ -6,7 +6,7 @@
 <div class="d-flex align-items-center justify-content-between mb-3">
   <div>
     <h2 class="mb-1">{% if is_edit %}Edit Menu Item{% else %}Create Menu Item{% endif %}</h2>
-    <div class="text-muted">Define dishes/addons with pricing.</div>
+    <div class="text-muted">Define dishes/addons with the way they are priced.</div>
   </div>
   <a class="btn btn-light border" href="{% url 'menu_list' %}"><i class="bi bi-arrow-left"></i> Back to menu</a>
 </div>
@@ -35,20 +35,41 @@
           {{ form.description }}
         </div>
         <div class="col-md-4">
-          <label class="form-label">Price per Portion</label>
+          <label class="form-label">Price</label>
           {{ form.price_per_portion }}
         </div>
         <div class="col-md-4">
-          <label class="form-label">Buffet?</label>
-          {{ form.is_buffet }}
+          <label class="form-label">Pricing Unit</label>
+          {{ form.pricing_unit }}
+          <div class="form-text">Choose how this item is sold: per head, kg, daig, plate, piece, or package.</div>
         </div>
         <div class="col-md-4">
-          <label class="form-label">Addon?</label>
-          {{ form.is_addon }}
+          <div class="form-check form-switch pt-4">
+            {{ form.is_buffet }}
+            <label class="form-check-label" for="{{ form.is_buffet.id_for_label }}">Buffet item</label>
+          </div>
+          <div class="form-text">Use for catering/buffet dishes. Unit can still be per head, kg, daig, etc.</div>
         </div>
         <div class="col-md-4">
-          <label class="form-label">Active</label>
-          {{ form.is_active }}
+          <div class="form-check form-switch pt-4">
+            {{ form.is_addon }}
+            <label class="form-check-label" for="{{ form.is_addon.id_for_label }}">Addon item</label>
+          </div>
+          <div class="form-text">Use for extras like drinks, raita, salad, or dessert.</div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-check form-switch pt-4">
+            {{ form.is_active }}
+            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Active</label>
+          </div>
+          <div class="form-text">Show this item when creating new orders.</div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-check form-switch pt-4">
+            {{ form.needs_attention }}
+            <label class="form-check-label" for="{{ form.needs_attention.id_for_label }}">Needs attention</label>
+          </div>
+          <div class="form-text">Turn this off after completing price, unit, category, and recipe details.</div>
         </div>
       </div>
 

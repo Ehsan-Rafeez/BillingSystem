@@ -1,6 +1,6 @@
 from django.db import models
 from decimal import Decimal
-from core.models import TimeStampedModel
+from core.models import TimeStampedModel, Shop
 
 
 class Supplier(TimeStampedModel):
@@ -10,6 +10,7 @@ class Supplier(TimeStampedModel):
     TYPES = [(BUSINESS, "Business"), (INDIVIDUAL, "Individual")]
     
     # Supplier Fields
+    shop = models.ForeignKey(Shop, on_delete=models.PROTECT, null=True, blank=True, related_name="suppliers")
     supplier_id = models.CharField(max_length=100, unique=True, blank=True, null=True)
     name = models.CharField(max_length=255)
     supplier_type = models.CharField(max_length=3, choices=TYPES, default=BUSINESS)

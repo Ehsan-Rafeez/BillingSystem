@@ -12,6 +12,7 @@ from collections import defaultdict
 from .models import InventoryItem, UnitOfMeasure, InventoryCategory, InventoryBaseItem, StockMovement
 from .forms import InventoryBaseItemForm, UnitOfMeasureForm, InventoryCategoryForm
 from suppliers.models import Supplier
+from core.tenancy import assign_shop, tenant_get_object_or_404, tenant_or_global_queryset, tenant_queryset
 
 
 # ---- Utility: Add default Units of Measure if none exist ----
@@ -57,9 +58,9 @@ def add_stock(request):
     """Add new stock item."""
     load_default_uoms()        # ensure UOMs exist
     load_default_categories()  # ensure Categories exist
-    uoms = UnitOfMeasure.objects.all().order_by("name")
-    categories = InventoryCategory.objects.all().order_by("name")
-    suppliers = Supplier.objects.filter(is_active=True).order_by("name")
+    uoms = tenant_or_global_queryset(request, UnitOfMeasure.objects.all()).order_by("name")
+    categories = tenant_or_global_queryset(request, InventoryCategory.objects.all()).order_by("name")
+    suppliers = tenant_queryset(request, Supplier.objects.filter(is_active=True)).order_by("name")
 
     if request.method == "POST":
         try:
@@ -87,8 +88,8 @@ def add_stock(request):
             rent_type = request.POST.get("rent_type") or None
             rent_condition = request.POST.get("rent_condition") or None
 
-            category = get_object_or_404(InventoryCategory, id=category_id)
-            uom = get_object_or_404(UnitOfMeasure, id=uom_id)
+            category = tenant_get_object_or_404(request, tenant_or_global_queryset(request, InventoryCategory.objects.all()), id=category_id)
+            uom = tenant_get_object_or_404(request, tenant_or_global_queryset(request, UnitOfMeasure.objects.all()), id=uom_id)
 
             stock = InventoryItem.objects.create(
                 name=name,
@@ -108,6 +109,8 @@ def add_stock(request):
                 rent_type=rent_type,
                 rent_condition=rent_condition,
             )
+            assign_shop(request, stock)
+            stock.save(update_fields=["shop"])
             # Log movement for initial stock
             StockMovement.objects.create(
                 inventory_item=stock,
@@ -135,7 +138,7 @@ def list_stock(request):
     query = request.GET.get("q")
     status = request.GET.get("status")
 
-    stocks = InventoryItem.objects.all().order_by("-created_at")
+    stocks = tenant_queryset(request, InventoryItem.objects.all()).order_by("-created_at")
 
     if query:
         stocks = stocks.filter(
@@ -190,22 +193,22 @@ def list_stock(request):
 
 def edit_stock(request, pk):
     """Edit stock item (same template as add_stock)."""
-    stock = get_object_or_404(InventoryItem, pk=pk)
+    stock = tenant_get_object_or_404(request, InventoryItem.objects.all(), pk=pk)
     old_qty = stock.quantity
     load_default_uoms()
     load_default_categories()
-    uoms = UnitOfMeasure.objects.all().order_by("name")
-    categories = InventoryCategory.objects.all().order_by("name")
-    suppliers = Supplier.objects.filter(is_active=True).order_by("name")
+    uoms = tenant_or_global_queryset(request, UnitOfMeasure.objects.all()).order_by("name")
+    categories = tenant_or_global_queryset(request, InventoryCategory.objects.all()).order_by("name")
+    suppliers = tenant_queryset(request, Supplier.objects.filter(is_active=True)).order_by("name")
 
     if request.method == "POST":
         try:
             stock.name = request.POST.get("name")
             category_id = request.POST.get("category")
-            stock.category = get_object_or_404(InventoryCategory, id=category_id)
+            stock.category = tenant_get_object_or_404(request, tenant_or_global_queryset(request, InventoryCategory.objects.all()), id=category_id)
             stock.quantity = int(request.POST.get("quantity", 1))
             stock.price_per_unit = Decimal(request.POST.get("price_per_unit", 0))
-            stock.uom = get_object_or_404(UnitOfMeasure, id=request.POST.get("uom"))
+            stock.uom = tenant_get_object_or_404(request, tenant_or_global_queryset(request, UnitOfMeasure.objects.all()), id=request.POST.get("uom"))
             stock.description = request.POST.get("description")
 
             stock.supplier_name = request.POST.get("supplier_name")
@@ -225,6 +228,7 @@ def edit_stock(request, pk):
             stock.rent_type = request.POST.get("rent_type") or None
             stock.rent_condition = request.POST.get("rent_condition") or None
 
+            assign_shop(request, stock)
             stock.save()
             # Log movement if quantity changed
             delta = stock.quantity - old_qty
@@ -252,7 +256,7 @@ def edit_stock(request, pk):
 
 def delete_stock(request, pk):
     """Delete stock item."""
-    stock = get_object_or_404(InventoryItem, pk=pk)
+    stock = tenant_get_object_or_404(request, InventoryItem.objects.all(), pk=pk)
     stock.delete()
     messages.success(request, f"Stock '{stock.name}' deleted successfully!")
     return redirect("list_stock")
@@ -260,7 +264,7 @@ def delete_stock(request, pk):
 
 def add_payment(request, pk):
     """Add payment for a stock item."""
-    stock = get_object_or_404(InventoryItem, pk=pk)
+    stock = tenant_get_object_or_404(request, InventoryItem.objects.all(), pk=pk)
 
     if request.method == "POST":
         try:
@@ -277,7 +281,7 @@ def add_payment(request, pk):
 
 def restock_item(request, pk):
     """Increment quantity for an existing stock item and log movement."""
-    stock = get_object_or_404(InventoryItem, pk=pk)
+    stock = tenant_get_object_or_404(request, InventoryItem.objects.all(), pk=pk)
     if request.method == "POST":
         try:
             qty = Decimal(request.POST.get("restock_quantity", "0"))
@@ -305,8 +309,8 @@ def add_inventory(request):
     """Add new inventory item with categories & UOMs from DB"""
     load_default_categories()  # ensure Categories exist
     load_default_uoms()        # ensure UOMs exist
-    categories = InventoryCategory.objects.all().order_by("name")
-    uoms = UnitOfMeasure.objects.all().order_by("name")
+    categories = tenant_or_global_queryset(request, InventoryCategory.objects.all()).order_by("name")
+    uoms = tenant_or_global_queryset(request, UnitOfMeasure.objects.all()).order_by("name")
 
     if request.method == "POST":
         try:
@@ -317,19 +321,22 @@ def add_inventory(request):
             price_per_unit = Decimal(request.POST.get("price_per_unit", 0))
             description = request.POST.get("description")
 
-            category = get_object_or_404(InventoryCategory, id=category_id)
-            uom = get_object_or_404(UnitOfMeasure, id=uom_id)
+            category = tenant_get_object_or_404(request, tenant_or_global_queryset(request, InventoryCategory.objects.all()), id=category_id)
+            uom = tenant_get_object_or_404(request, tenant_or_global_queryset(request, UnitOfMeasure.objects.all()), id=uom_id)
 
-            InventoryItem.objects.create(
+            item = InventoryItem.objects.create(
                 name=name,
                 category=category,   # ✅ save FK directly
                 uom=uom,
                 quantity=quantity,
                 price_per_unit=price_per_unit,
                 description=description,
+                supplier_name=request.POST.get("supplier_name") or "Manual entry",
                 total_amount=price_per_unit * quantity,
                 paid_amount=Decimal(0)
             )
+            assign_shop(request, item)
+            item.save(update_fields=["shop"])
 
             messages.success(request, f"Inventory item '{name}' added successfully!")
             return redirect("list_inventory")
@@ -345,8 +352,57 @@ def add_inventory(request):
 
 def list_inventory(request):
     """List all inventory items"""
-    items = InventoryItem.objects.all().order_by("-created_at")
-    return render(request, "inventory/list_inventory.html", {"items": items})
+    load_default_categories()
+    load_default_uoms()
+    categories = tenant_or_global_queryset(request, InventoryCategory.objects.all()).order_by("name")
+    uoms = tenant_or_global_queryset(request, UnitOfMeasure.objects.all()).order_by("name")
+
+    if request.method == "POST":
+        try:
+            name = (request.POST.get("name") or "").strip()
+            category_id = request.POST.get("category")
+            uom_id = request.POST.get("uom")
+            quantity = int(request.POST.get("quantity") or 1)
+            price_per_unit = Decimal(request.POST.get("price_per_unit") or 0)
+            description = (request.POST.get("description") or "").strip()
+            supplier_name = (request.POST.get("supplier_name") or "Manual entry").strip()
+
+            if not name:
+                raise ValueError("Item name is required.")
+            if quantity <= 0:
+                raise ValueError("Quantity must be greater than zero.")
+            if price_per_unit < 0:
+                raise ValueError("Price cannot be negative.")
+
+            category = tenant_get_object_or_404(request, tenant_or_global_queryset(request, InventoryCategory.objects.all()), id=category_id)
+            uom = tenant_get_object_or_404(request, tenant_or_global_queryset(request, UnitOfMeasure.objects.all()), id=uom_id)
+            item = InventoryItem.objects.create(
+                name=name,
+                category=category,
+                uom=uom,
+                quantity=quantity,
+                price_per_unit=price_per_unit,
+                description=description,
+                supplier_name=supplier_name,
+                total_amount=price_per_unit * quantity,
+                paid_amount=Decimal("0.00"),
+                payment_method="cash",
+            )
+            assign_shop(request, item)
+            item.save(update_fields=["shop"])
+            StockMovement.objects.create(
+                inventory_item=item,
+                movement_type=StockMovement.IN,
+                quantity=quantity,
+                note="Initial inventory entry",
+            )
+            messages.success(request, f"Inventory item '{name}' added.")
+            return redirect("list_inventory")
+        except Exception as e:
+            messages.error(request, f"Could not add inventory item: {e}")
+
+    items = tenant_queryset(request, InventoryItem.objects.select_related("category", "uom")).order_by("-created_at")
+    return render(request, "inventory/list_inventory.html", {"items": items, "categories": categories, "uoms": uoms})
 
 
 # ---------------- LIVE STOCK VIEW ---------------- #
@@ -359,7 +415,7 @@ def live_stock(request):
     combined = defaultdict(int)
 
     # Collect all inventory items (both stock and inventory)
-    items = InventoryItem.objects.all()
+    items = tenant_queryset(request, InventoryItem.objects.all())
 
     for item in items:
         combined[item.name] += item.quantity
@@ -372,7 +428,7 @@ def live_stock(request):
 
 # ---------------- BASE INVENTORY (catalog) ---------------- #
 def base_item_list(request):
-    items = InventoryBaseItem.objects.select_related("uom", "supplier").order_by("name")
+    items = tenant_queryset(request, InventoryBaseItem.objects.select_related("uom", "supplier")).order_by("name")
     return render(request, "inventory/baseitem_list.html", {"items": items})
 
 
@@ -380,7 +436,9 @@ def base_item_create(request):
     if request.method == "POST":
         form = InventoryBaseItemForm(request.POST)
         if form.is_valid():
-            form.save()
+            item = form.save(commit=False)
+            assign_shop(request, item)
+            item.save()
             messages.success(request, "Base item created.")
             return redirect("baseitem_list")
         messages.error(request, "Please fix the errors below.")
@@ -390,11 +448,13 @@ def base_item_create(request):
 
 
 def base_item_update(request, pk):
-    item = get_object_or_404(InventoryBaseItem, pk=pk)
+    item = tenant_get_object_or_404(request, InventoryBaseItem.objects.all(), pk=pk)
     if request.method == "POST":
         form = InventoryBaseItemForm(request.POST, instance=item)
         if form.is_valid():
-            form.save()
+            item = form.save(commit=False)
+            assign_shop(request, item)
+            item.save()
             messages.success(request, "Base item updated.")
             return redirect("baseitem_list")
         messages.error(request, "Please fix the errors below.")
@@ -404,7 +464,7 @@ def base_item_update(request, pk):
 
 
 def base_item_delete(request, pk):
-    item = get_object_or_404(InventoryBaseItem, pk=pk)
+    item = tenant_get_object_or_404(request, InventoryBaseItem.objects.all(), pk=pk)
     if request.method == "POST":
         item.delete()
         messages.success(request, "Base item deleted.")
@@ -414,7 +474,7 @@ def base_item_delete(request, pk):
 
 # ---------------- UOM & CATEGORY MGMT ---------------- #
 def uom_list(request):
-    uoms = UnitOfMeasure.objects.order_by("name")
+    uoms = tenant_or_global_queryset(request, UnitOfMeasure.objects.all()).order_by("name")
     return render(request, "inventory/uom_list.html", {"uoms": uoms})
 
 
@@ -422,7 +482,9 @@ def uom_create(request):
     if request.method == "POST":
         form = UnitOfMeasureForm(request.POST)
         if form.is_valid():
-            form.save()
+            uom = form.save(commit=False)
+            assign_shop(request, uom)
+            uom.save()
             messages.success(request, "Unit created.")
             return redirect("uom_list")
         messages.error(request, "Please fix the errors below.")
@@ -432,11 +494,13 @@ def uom_create(request):
 
 
 def uom_update(request, pk):
-    uom = get_object_or_404(UnitOfMeasure, pk=pk)
+    uom = tenant_get_object_or_404(request, tenant_or_global_queryset(request, UnitOfMeasure.objects.all()), pk=pk)
     if request.method == "POST":
         form = UnitOfMeasureForm(request.POST, instance=uom)
         if form.is_valid():
-            form.save()
+            uom = form.save(commit=False)
+            assign_shop(request, uom)
+            uom.save()
             messages.success(request, "Unit updated.")
             return redirect("uom_list")
         messages.error(request, "Please fix the errors below.")
@@ -446,7 +510,7 @@ def uom_update(request, pk):
 
 
 def category_list(request):
-    categories = InventoryCategory.objects.order_by("name")
+    categories = tenant_or_global_queryset(request, InventoryCategory.objects.all()).order_by("name")
     return render(request, "inventory/category_list.html", {"categories": categories})
 
 
@@ -454,7 +518,9 @@ def category_create(request):
     if request.method == "POST":
         form = InventoryCategoryForm(request.POST)
         if form.is_valid():
-            form.save()
+            category = form.save(commit=False)
+            assign_shop(request, category)
+            category.save()
             messages.success(request, "Category created.")
             return redirect("inventory_category_list")
         messages.error(request, "Please fix the errors below.")
@@ -464,11 +530,13 @@ def category_create(request):
 
 
 def category_update(request, pk):
-    category = get_object_or_404(InventoryCategory, pk=pk)
+    category = tenant_get_object_or_404(request, tenant_or_global_queryset(request, InventoryCategory.objects.all()), pk=pk)
     if request.method == "POST":
         form = InventoryCategoryForm(request.POST, instance=category)
         if form.is_valid():
-            form.save()
+            category = form.save(commit=False)
+            assign_shop(request, category)
+            category.save()
             messages.success(request, "Category updated.")
             return redirect("inventory_category_list")
         messages.error(request, "Please fix the errors below.")
@@ -506,7 +574,7 @@ def stock_purchase_report(request):
     start_dt = timezone.make_aware(datetime.combine(start, time.min), tz) if start else None
     end_dt = timezone.make_aware(datetime.combine(end, time.max), tz) if end else None
 
-    items_qs = InventoryItem.objects.all()
+    items_qs = tenant_queryset(request, InventoryItem.objects.all())
     if start_dt and end_dt:
         items_qs = items_qs.filter(created_at__range=(start_dt, end_dt))
     elif start_dt:
@@ -515,6 +583,8 @@ def stock_purchase_report(request):
         items_qs = items_qs.filter(created_at__lte=end_dt)
 
     movements_qs = StockMovement.objects.filter(movement_type=StockMovement.IN).select_related("inventory_item")
+    if not request.user.is_superuser and getattr(request, "shop", None):
+        movements_qs = movements_qs.filter(inventory_item__shop=request.shop)
     if start_dt and end_dt:
         movements_qs = movements_qs.filter(created_at__range=(start_dt, end_dt))
     elif start_dt:
@@ -582,6 +652,8 @@ def stock_usage_report(request):
     end_dt = timezone.make_aware(datetime.combine(end, time.max), tz) if end else None
 
     qs = StockMovement.objects.filter(movement_type=StockMovement.OUT).select_related("inventory_item")
+    if not request.user.is_superuser and getattr(request, "shop", None):
+        qs = qs.filter(inventory_item__shop=request.shop)
     if start_dt and end_dt:
         qs = qs.filter(created_at__range=(start_dt, end_dt))
     elif start_dt:

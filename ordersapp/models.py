@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.db import models
 from django.utils import timezone
 from customers.models import Customer
+from core.models import Shop
 
 
 class Event(models.Model):
@@ -19,6 +20,7 @@ class Event(models.Model):
         (OTHER, "Other"),
     ]
 
+    shop = models.ForeignKey(Shop, on_delete=models.PROTECT, null=True, blank=True, related_name="events")
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name="events")
     title = models.CharField(max_length=255, help_text="Event name or identifier")
     event_type = models.CharField(max_length=20, choices=EVENT_TYPES, default=OTHER)
@@ -44,20 +46,44 @@ class Event(models.Model):
 
 
 class MenuCategory(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    shop = models.ForeignKey(Shop, on_delete=models.PROTECT, null=True, blank=True, related_name="menu_categories")
+    name = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["shop", "name"], name="unique_menu_category_per_shop"),
+        ]
+
 
 class MenuItem(models.Model):
+    UNIT_HEAD = "head"
+    UNIT_KG = "kg"
+    UNIT_DAIG = "daig"
+    UNIT_PLATE = "plate"
+    UNIT_PIECE = "piece"
+    UNIT_PACKAGE = "package"
+    PRICING_UNIT_CHOICES = [
+        (UNIT_HEAD, "Per head"),
+        (UNIT_KG, "Per kg"),
+        (UNIT_DAIG, "Per daig"),
+        (UNIT_PLATE, "Per plate"),
+        (UNIT_PIECE, "Per piece"),
+        (UNIT_PACKAGE, "Per package"),
+    ]
+
+    shop = models.ForeignKey(Shop, on_delete=models.PROTECT, null=True, blank=True, related_name="menu_items")
     category = models.ForeignKey(MenuCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name="items")
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     price_per_portion = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
+    pricing_unit = models.CharField(max_length=20, choices=PRICING_UNIT_CHOICES, default=UNIT_HEAD)
     is_buffet = models.BooleanField(default=False)
     is_addon = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    needs_attention = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -75,6 +101,7 @@ class RecipeItem(models.Model):
 
 
 class MenuPackage(models.Model):
+    shop = models.ForeignKey(Shop, on_delete=models.PROTECT, null=True, blank=True, related_name="menu_packages")
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     price_per_head = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
@@ -111,14 +138,19 @@ class Order(models.Model):
     ]
 
 
-    order_date = models.DateField()
+    shop = models.ForeignKey(Shop, on_delete=models.PROTECT, null=True, blank=True, related_name="orders")
+    order_date = models.DateField(default=timezone.localdate)
     customer_name = models.CharField(max_length=255)
     address = models.TextField()
     phone_number = models.CharField(max_length=20)
     
-    location = models.CharField(max_length=255, blank=True, null=True)
+    location = models.TextField(blank=True, null=True)
     delivery_date = models.DateField()
+    delivery_time = models.TimeField(blank=True, null=True)
+    catering_date = models.DateField(blank=True, null=True)
+    catering_time = models.TimeField(blank=True, null=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     received_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     cnic_number = models.CharField(max_length=20, blank=False, null=False, default="0000000000000")
     
@@ -139,6 +171,11 @@ class Order(models.Model):
     def due_amount(self):
         """Calculate remaining due amount"""
         return self.total_amount - self.received_amount
+
+    @property
+    def gross_amount(self):
+        """Amount before discount."""
+        return self.total_amount + (self.discount_amount or Decimal("0.00"))
 
 
 class Payment(models.Model):
@@ -170,6 +207,7 @@ class Quote(models.Model):
         (REJECTED, "Rejected"),
     ]
 
+    shop = models.ForeignKey(Shop, on_delete=models.PROTECT, null=True, blank=True, related_name="quotes")
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="quotes")
     title = models.CharField(max_length=255)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=DRAFT)

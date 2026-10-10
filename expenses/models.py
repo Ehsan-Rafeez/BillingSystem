@@ -1,8 +1,10 @@
 from decimal import Decimal
 from django.db import models
+from core.models import Shop
 
 
 class ExpenseCategory(models.Model):
+    shop = models.ForeignKey(Shop, on_delete=models.PROTECT, null=True, blank=True, related_name="expense_categories")
     name = models.CharField(max_length=100, unique=True)
 
     class Meta:
@@ -24,6 +26,7 @@ class Expense(models.Model):
         (CARD, "Card"),
     ]
 
+    shop = models.ForeignKey(Shop, on_delete=models.PROTECT, null=True, blank=True, related_name="expenses")
     date = models.DateField()
     category = models.ForeignKey(ExpenseCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name="expenses")
     description = models.TextField(blank=True)

@@ -1,0 +1,41 @@
+from django.urls import path
+
+from . import views
+
+
+urlpatterns = [
+    path("health/", views.health, name="api_health"),
+    path("login/", views.login, name="api_login"),
+    path("dashboard/", views.dashboard, name="api_dashboard"),
+    path("orders/", views.orders, name="api_orders"),
+    path("orders/meta/", views.order_meta, name="api_order_meta"),
+    path("orders/create/", views.order_create, name="api_order_create"),
+    path("orders/<int:order_id>/", views.order_detail, name="api_order_detail"),
+    path("orders/<int:order_id>/update/", views.order_update, name="api_order_update"),
+    path("orders/<int:order_id>/payment/", views.order_payment_create, name="api_order_payment_create"),
+    path("orders/<int:order_id>/deliver/", views.order_deliver, name="api_order_deliver"),
+    path("orders/<int:order_id>/delete/", views.order_delete, name="api_order_delete"),
+    path("customers/", views.customers, name="api_customers"),
+    path("customers/create/", views.customer_create, name="api_customer_create"),
+    path("events/", views.events, name="api_events"),
+    path("events/create/", views.event_create, name="api_event_create"),
+    path("menu/categories/", views.menu_categories, name="api_menu_categories"),
+    path("menu/categories/create/", views.menu_category_create, name="api_menu_category_create"),
+    path("menu/items/", views.menu_items, name="api_menu_items"),
+    path("menu/items/create/", views.menu_item_create, name="api_menu_item_create"),
+    path("menu/items/<int:item_id>/update/", views.menu_item_update, name="api_menu_item_update"),
+    path("inventory/", views.inventory, name="api_inventory"),
+    path("inventory/meta/", views.inventory_meta, name="api_inventory_meta"),
+    path("inventory/create/", views.inventory_create, name="api_inventory_create"),
+    path("inventory/<int:item_id>/update/", views.inventory_update, name="api_inventory_update"),
+    path("inventory/<int:item_id>/restock/", views.inventory_restock, name="api_inventory_restock"),
+    path("inventory/<int:item_id>/delete/", views.inventory_delete, name="api_inventory_delete"),
+    path("suppliers/", views.suppliers, name="api_suppliers"),
+    path("suppliers/create/", views.supplier_create, name="api_supplier_create"),
+    path("suppliers/<int:supplier_id>/payment/", views.supplier_payment_create, name="api_supplier_payment_create"),
+    path("expenses/", views.expenses, name="api_expenses"),
+    path("expenses/meta/", views.expense_meta, name="api_expense_meta"),
+    path("expenses/create/", views.expense_create, name="api_expense_create"),
+    path("settings/", views.shop_settings, name="api_shop_settings"),
+    path("settings/update/", views.shop_settings_update, name="api_shop_settings_update"),
+]

@@ -26,7 +26,10 @@ urlpatterns = [
     path('reports/pnl/', views.profit_loss_report, name='profit_loss_report'),
 
     path('orders/', views.list_orders, name='list_orders'),
+    path('orders/<int:order_id>/invoice/', views.order_invoice, name='order_invoice'),
     path('create_order/', views.create_order, name='create_orders'),
+    path('quick-create-menu-item/', views.quick_create_menu_item, name='quick_create_menu_item'),
+    path('quick-create-item/', views.quick_create_inventory_item, name='quick_create_inventory_item'),
 
     # Payment entry
     path('payment-entry/select/', views.payment_entry_select, name='payment_entry_select'),

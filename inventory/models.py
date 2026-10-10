@@ -1,6 +1,6 @@
 from django.db import models
 from decimal import Decimal
-from core.models import TimeStampedModel
+from core.models import TimeStampedModel, Shop
 
 
 # -----------------------------
@@ -24,6 +24,7 @@ class InventoryBaseItem(TimeStampedModel):
         (SERVICE, "Service"),
     ]
 
+    shop = models.ForeignKey(Shop, on_delete=models.PROTECT, null=True, blank=True, related_name="inventory_base_items")
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     quantity = models.PositiveIntegerField(default=0)
@@ -64,6 +65,7 @@ class InventoryBaseItem(TimeStampedModel):
 class UnitOfMeasure(models.Model):
     """Table for Units of Measure (kg, g, L, pcs, etc.)."""
 
+    shop = models.ForeignKey(Shop, on_delete=models.PROTECT, null=True, blank=True, related_name="units_of_measure")
     name = models.CharField(max_length=50, unique=True)
     abbreviation = models.CharField(max_length=10, unique=True)
 
@@ -80,6 +82,7 @@ class UnitOfMeasure(models.Model):
 class InventoryCategory(models.Model):
     """Dynamic categories for inventory items (Fruits, Dairy, Meat, etc.)"""
 
+    shop = models.ForeignKey(Shop, on_delete=models.PROTECT, null=True, blank=True, related_name="inventory_categories")
     name = models.CharField(max_length=100, unique=True)
 
     class Meta:
@@ -106,6 +109,8 @@ class InventoryItem(models.Model):
         ("weekly", "Weekly"),
         ("monthly", "Monthly"),
     ]
+
+    shop = models.ForeignKey(Shop, on_delete=models.PROTECT, null=True, blank=True, related_name="inventory_items")
 
     # Stock Info
     stock_code = models.CharField(max_length=20, unique=True, editable=False)
