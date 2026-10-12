@@ -29,9 +29,17 @@ SECRET_KEY = 'django-insecure-ejn1*isi%2x3x#olw=7a6w+go*kl-oa1dsm8(wulo_9xn6e&*e
 DEBUG = config('DEBUG', cast=bool, default=False)
 
 if DEBUG == False:
-    ALLOWED_HOSTS = ['160.238.36.107', 'paradisecatering.pk', 'www.paradisecatering.pk']
+    ALLOWED_HOSTS = [
+        "bill.sspcommunications.online",
+        "127.0.0.1",
+        "localhost",
+    ]
 else:
     ALLOWED_HOSTS = ["*"]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://bill.sspcommunications.online",
+]
 
 
 # Application definition
