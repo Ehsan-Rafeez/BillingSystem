@@ -14,13 +14,28 @@ class ShopAdminForm(forms.ModelForm):
     owner_password = forms.CharField(
         label="New owner password",
         required=False,
-        widget=forms.PasswordInput(render_value=True),
+        widget=forms.PasswordInput(
+            render_value=False,
+            attrs={"class": "shop-owner-password"},
+        ),
+    )
+    owner_password_confirm = forms.CharField(
+        label="Confirm owner password",
+        required=False,
+        widget=forms.PasswordInput(
+            render_value=False,
+            attrs={"class": "shop-owner-password"},
+        ),
+        help_text="Enter the same password again.",
     )
     owner_email = forms.EmailField(label="New owner email", required=False)
 
     class Meta:
         model = Shop
         fields = "__all__"
+
+    class Media:
+        js = ("core/admin_password.js",)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -31,6 +46,7 @@ class ShopAdminForm(forms.ModelForm):
         cleaned_data = super().clean()
         username = cleaned_data.get("owner_username")
         password = cleaned_data.get("owner_password")
+        password_confirm = cleaned_data.get("owner_password_confirm")
 
         if self.instance.pk and username:
             raise forms.ValidationError("Edit the existing owner account from Users, or choose another owner.")
@@ -38,6 +54,8 @@ class ShopAdminForm(forms.ModelForm):
             self.add_error("owner_username", "Enter a username for the shop owner.")
         if username and not password:
             self.add_error("owner_password", "Enter a password for the new shop owner.")
+        if username and password and password != password_confirm:
+            self.add_error("owner_password_confirm", "The passwords do not match.")
         if username and User.objects.filter(username=username).exists():
             self.add_error("owner_username", "A user with this username already exists.")
 
@@ -62,11 +80,16 @@ class ShopAdmin(admin.ModelAdmin):
 
     def get_exclude(self, request, obj=None):
         if obj:
-            return ("owner_username", "owner_password", "owner_email")
+            return ("owner_username", "owner_password", "owner_password_confirm", "owner_email")
         return ("owner",)
 
     def get_fieldsets(self, request, obj=None):
-        owner_fields = ("owner",) if obj else ("owner_username", "owner_password", "owner_email")
+        owner_fields = ("owner",) if obj else (
+            "owner_username",
+            "owner_password",
+            "owner_password_confirm",
+            "owner_email",
+        )
         owner_description = (
             "This shop owner is a normal app user, not staff and not super-admin."
             if obj
