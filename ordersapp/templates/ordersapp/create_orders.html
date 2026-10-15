@@ -203,7 +203,11 @@
                   <select class="form-select" id="menuSelect">
                     <option value="">-- choose menu item --</option>
                     {% for m in menu_items %}
-                      <option value="{{ m.id }}">{{ m.name }} ({{ m.category|default:"" }}, {{ m.get_pricing_unit_display }})</option>
+                      <option value="{{ m.id }}"
+                              data-price="{{ m.price_per_portion|default:'0.00' }}"
+                              data-unit="{{ m.get_pricing_unit_display }}">
+                        {{ m.name }} ({{ m.category|default:"" }}, {{ m.get_pricing_unit_display }}) - PKR {{ m.price_per_portion|default:'0.00' }}
+                      </option>
                     {% endfor %}
                   </select>
                 </div>
@@ -234,7 +238,7 @@
                   <tbody>
                     {% if is_edit %}
                       {% for item in order.menu_items.all %}
-                      <tr data-id="{{ item.menu_item_id }}">
+                      <tr data-id="{{ item.menu_item_id }}" data-price="{{ item.menu_item.price_per_portion|default:'0.00' }}">
                         <td>
                           {{ item.menu_item.name }}
                           <input type="hidden" name="menu_item_ids[]" value="{{ item.menu_item_id }}">
@@ -267,10 +271,10 @@
                   <label class="form-label required"><i class="bi bi-currency-dollar"></i>Subtotal</label>
                   <div class="input-group">
                     <span class="input-group-text">PKR</span>
-                    <input type="number" step="0.01" min="0" name="gross_amount" class="form-control" placeholder="0.00" required
+                    <input type="number" step="0.01" min="0" name="gross_amount" class="form-control" placeholder="0.00" required readonly
                            value="{% if is_edit %}{{ order.gross_amount }}{% endif %}">
                   </div>
-                  <div class="helper mt-1">Amount before discount.</div>
+                  <div class="helper mt-1">Calculated automatically from menu item prices and quantities.</div>
                 </div>
 
                 <div class="col-md-6">
@@ -425,9 +429,21 @@
     const sumTotal   = $("#sumTotal");
     const sumRecv    = $("#sumReceived");
     const sumDue     = $("#sumDue");
+    let menuTbody = null;
+
+    function menuSubtotal() {
+      if (!menuTbody) return 0;
+      return Array.from(menuTbody.querySelectorAll('tr')).reduce((sum, row) => {
+        const price = parseFloat(row.dataset.price || '0') || 0;
+        const quantity = parseFloat(row.querySelector('input[name="menu_quantities[]"]')?.value || '0') || 0;
+        return sum + (price * quantity);
+      }, 0);
+    }
 
     function recalc() {
-      const gross = Math.max(parseFloat(grossInput.value) || 0, 0);
+      const calculatedGross = menuSubtotal();
+      const gross = Math.max(menuTbody && menuTbody.children.length ? calculatedGross : (parseFloat(grossInput.value) || 0), 0);
+      grossInput.value = gross.toFixed(2);
       const rawDiscount = Math.max(parseFloat(discountInput.value) || 0, 0);
       const discount = Math.min(rawDiscount, gross);
       const t = Math.max(gross - discount, 0);
@@ -463,22 +479,25 @@
     const menuSelect = document.getElementById('menuSelect');
     const menuQty = document.getElementById('menuQty');
     const addMenuBtn = document.getElementById('addMenuBtn');
-    const menuTbody = document.querySelector('#menuItemsTable tbody');
+    menuTbody = document.querySelector('#menuItemsTable tbody');
+    recalc();
     const quickMenuForm = document.getElementById('quickMenuForm');
     const quickMenuSubmit = document.getElementById('quickMenuSubmit');
     const quickMenuModalEl = document.getElementById('quickMenuModal');
     const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
-    function addMenuRow(id, name, qty){
+    function addMenuRow(id, name, qty, price){
       const existing = menuTbody.querySelector(`tr[data-id="${id}"]`);
       if(existing){
         const qtyInput = existing.querySelector('input[name="menu_quantities[]"]');
         qtyInput.value = parseInt(qtyInput.value||'0') + qty;
         existing.querySelector('.menu-qty-label').textContent = qtyInput.value;
+        recalc();
         return;
       }
       const tr = document.createElement('tr');
       tr.dataset.id = id;
+      tr.dataset.price = price || '0';
       tr.innerHTML = `
         <td>
           ${name}
@@ -496,16 +515,18 @@
         </td>
       `;
       menuTbody.appendChild(tr);
+      recalc();
     }
 
     addMenuBtn?.addEventListener('click', () => {
       const opt = menuSelect.options[menuSelect.selectedIndex];
       const id = menuSelect.value;
       const name = opt?.textContent || '';
+      const price = opt?.dataset.price || '0';
       const qty = parseInt(menuQty.value||'0');
       if(!id){ Swal.fire({icon:'warning', title:'Select a menu item first'}); return; }
       if(qty<=0){ Swal.fire({icon:'warning', title:'Quantity must be > 0'}); return; }
-      addMenuRow(id, name, qty);
+      addMenuRow(id, name, qty, price);
     });
 
     function hideQuickMenuModal(){
@@ -540,9 +561,10 @@
 
         const item = data.item;
         const option = new Option(item.label, item.id, true, true);
+        option.dataset.price = item.price || '0';
         menuSelect.add(option);
         menuQty.value = '1';
-        addMenuRow(item.id, item.label, 1);
+        addMenuRow(item.id, item.label, 1, item.price || '0');
         quickMenuForm.reset();
         hideQuickMenuModal();
         Swal.fire({ icon:'success', title:'Menu item added', text:'It is marked as needing attention in Menus.', timer:1600, showConfirmButton:false });
@@ -558,6 +580,7 @@
       const btn = e.target.closest('.remove-menu');
       if(!btn) return;
       btn.closest('tr')?.remove();
+      recalc();
     });
 
     // Basic client checks before SweetAlert

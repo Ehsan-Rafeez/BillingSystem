@@ -689,6 +689,7 @@ def quick_create_menu_item(request):
             "item": {
                 "id": item.id,
                 "name": item.name,
+                "price": str(item.price_per_portion),
                 "label": f"{item.name} ({item.get_pricing_unit_display()})",
             },
         }
