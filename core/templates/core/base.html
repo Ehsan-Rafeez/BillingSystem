@@ -11,6 +11,10 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/index.css' %}" />
@@ -19,52 +23,60 @@
 
   <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-dark bg-dark fixed-top">
-      <div class="container-fluid">
+    <nav class="navbar navbar-dark app-navbar fixed-top">
+      <div class="container-fluid app-navbar-inner">
         <div class="d-flex align-items-center gap-2">
-          <a class="navbar-brand d-flex align-items-center" href="{% url 'list_orders' %}">
-            <span class="brand-text me-2 fw-bold">
+          <a class="navbar-brand app-brand d-flex align-items-center" href="{% url 'index' %}">
+            <span class="brand-mark">
+              {% if request.shop and request.shop.invoice_logo %}
+                <img src="{{ request.shop.invoice_logo.url }}" alt="" class="brand-logo" />
+              {% else %}
+                <img src="{% static 'images/icons8-school-48.png' %}" alt="" class="brand-logo" />
+              {% endif %}
+            </span>
+            <span class="brand-copy">
+              <span class="brand-text fw-bold">
               {% if request.shop %}
                 {{ request.shop.invoice_shop_name|default:request.shop.name }}
               {% else %}
                 Billing System
               {% endif %}
+              </span>
+              <small>Billing workspace</small>
             </span>
-            {% if request.shop and request.shop.invoice_logo %}
-              <img src="{{ request.shop.invoice_logo.url }}" alt="{{ request.shop.name }} Logo" class="brand-logo" />
-            {% else %}
-              <img src="{% static 'images/icons8-school-48.png' %}" alt="Billing System Logo" class="brand-logo" />
-            {% endif %}
           </a>
-          <button class="sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
-            <span></span>
-            <span></span>
-            <span></span>
+          <button class="sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Toggle sidebar" aria-controls="sidebarMenu" aria-expanded="false">
+            <i class="bi bi-list" aria-hidden="true"></i>
           </button>
+        </div>
+        <div class="navbar-context d-none d-md-flex">
+          <i class="bi bi-shield-check" aria-hidden="true"></i>
+          <span>{% if request.shop %}{{ request.shop.name }}{% else %}Billing System{% endif %}</span>
         </div>
       </div>
     </nav>
 
     <!-- Sidebar -->
     <div class="sidebar-menu" id="sidebarMenu">
-      <a href="{% url 'index' %}">Dashboard</a>
+      <div class="sidebar-heading">Workspace</div>
+      <a class="sidebar-link sidebar-link-primary" href="{% url 'index' %}"><i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span></a>
 
       <!-- Customers Collapsible -->
       <a
         href="#profilesSubmenu"
         data-bs-toggle="collapse"
         aria-expanded="false"
-        class="dropdown-toggle text-white d-block px-3 py-2"
+        class="sidebar-link dropdown-toggle"
         id="sidebarProfileDropdown"
       >
-        Customers
+        <i class="bi bi-people-fill"></i><span>Customers</span>
       </a>
       <ul class="collapse list-unstyled ps-3" id="profilesSubmenu">
         <li>
-          <a class="dropdown-item" href="{% url 'create_customer' %}">Add Customer</a>
+          <a class="dropdown-item" href="{% url 'create_customer' %}"><i class="bi bi-person-plus"></i>Add Customer</a>
         </li>
         <li>
-          <a class="dropdown-item" href="{% url 'list_customer' %}">List Customers</a>
+          <a class="dropdown-item" href="{% url 'list_customer' %}"><i class="bi bi-list-ul"></i>List Customers</a>
         </li>
       </ul>
 
@@ -73,32 +85,32 @@
         href="#ordersSubmenu"
         data-bs-toggle="collapse"
         aria-expanded="false"
-        class="dropdown-toggle text-white d-block px-3 py-2"
+        class="sidebar-link dropdown-toggle"
         id="sidebarOrdersDropdown"
       >
-        Orders
+        <i class="bi bi-receipt-cutoff"></i><span>Orders</span>
       </a>
       <ul class="collapse list-unstyled ps-3" id="ordersSubmenu">
         <li>
-          <a class="dropdown-item" href="{% url 'create_orders' %}">Add Order</a>
+          <a class="dropdown-item" href="{% url 'create_orders' %}"><i class="bi bi-plus-circle"></i>Add Order</a>
         </li>
         <li>
-          <a class="dropdown-item" href="{% url 'list_orders' %}">List Orders</a>
+          <a class="dropdown-item" href="{% url 'list_orders' %}"><i class="bi bi-list-check"></i>List Orders</a>
         </li>
         <li>
-          <a class="dropdown-item" href="{% url 'list_events' %}">Events</a>
+          <a class="dropdown-item" href="{% url 'list_events' %}"><i class="bi bi-calendar-event"></i>Events</a>
         </li>
         <li>
-          <a class="dropdown-item" href="{% url 'menu_list' %}">Menus</a>
+          <a class="dropdown-item" href="{% url 'menu_list' %}"><i class="bi bi-menu-button-wide"></i>Menus</a>
         </li>
         <li>
-          <a class="dropdown-item" href="{% url 'category_list' %}">Menu Categories</a>
+          <a class="dropdown-item" href="{% url 'category_list' %}"><i class="bi bi-tags"></i>Menu Categories</a>
         </li>
         <li>
-          <a class="dropdown-item" href="{% url 'quote_list' %}">Quotes</a>
+          <a class="dropdown-item" href="{% url 'quote_list' %}"><i class="bi bi-file-earmark-text"></i>Quotes</a>
         </li>
         <li>
-          <a class="dropdown-item" href="{% url 'payment_entry_select' %}">Payment Entry</a>
+          <a class="dropdown-item" href="{% url 'payment_entry_select' %}"><i class="bi bi-cash-coin"></i>Payment Entry</a>
         </li>
       </ul>
 
@@ -107,14 +119,14 @@
         href="#inventorySubmenu"
         data-bs-toggle="collapse"
         aria-expanded="false"
-        class="dropdown-toggle text-white d-block px-3 py-2"
+        class="sidebar-link dropdown-toggle"
         id="sidebarInventoryDropdown"
       >
-        Inventory
+        <i class="bi bi-box-seam-fill"></i><span>Inventory</span>
       </a>
       <ul class="collapse list-unstyled ps-3" id="inventorySubmenu">
-        <a href="#stockSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle text-white d-block px-3 py-2" id="sidebarStockDropdown">
-          Stock
+        <a href="#stockSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="sidebar-link sidebar-subgroup" id="sidebarStockDropdown">
+          <i class="bi bi-bar-chart-steps"></i><span>Stock</span>
         </a>
         <ul class="collapse list-unstyled ps-3" id="stockSubmenu">
           <!-- <li>
@@ -128,8 +140,8 @@
           </li>
         </ul>
 
-        <a href="#inventoryItemsSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle text-white d-block px-3 py-2" id="sidebarInventoryItemsDropdown">
-          Inventory Items
+        <a href="#inventoryItemsSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="sidebar-link sidebar-subgroup" id="sidebarInventoryItemsDropdown">
+          <i class="bi bi-boxes"></i><span>Inventory Items</span>
         </a>
         <ul class="collapse list-unstyled ps-3" id="inventoryItemsSubmenu">
           <!-- <li>
@@ -155,10 +167,10 @@
         href="#reportsSubmenu"
         data-bs-toggle="collapse"
         aria-expanded="false"
-        class="dropdown-toggle text-white d-block px-3 py-2"
+        class="sidebar-link dropdown-toggle"
         id="sidebarReportsDropdown"
       >
-        Reports
+        <i class="bi bi-bar-chart-fill"></i><span>Reports</span>
       </a>
       <ul class="collapse list-unstyled ps-3" id="reportsSubmenu">
         <li>
@@ -183,10 +195,10 @@
         href="#expensesSubmenu"
         data-bs-toggle="collapse"
         aria-expanded="false"
-        class="dropdown-toggle text-white d-block px-3 py-2"
+        class="sidebar-link dropdown-toggle"
         id="sidebarExpensesDropdown"
       >
-        Expenses
+        <i class="bi bi-wallet2"></i><span>Expenses</span>
       </a>
       <ul class="collapse list-unstyled ps-3" id="expensesSubmenu">
         <li>
@@ -204,8 +216,8 @@
       </ul>
 
       <!-- Suppliers Collapsible -->
-      <a href="#suppliersSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle text-white d-block px-3 py-2" id="sidebarSuppliersDropdown">
-        Suppliers
+      <a href="#suppliersSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="sidebar-link dropdown-toggle" id="sidebarSuppliersDropdown">
+        <i class="bi bi-truck"></i><span>Suppliers</span>
       </a>
       <ul class="collapse list-unstyled ps-3" id="suppliersSubmenu">
         <li>
@@ -219,12 +231,14 @@
         </li>
       </ul>
 
-      <a href="{% url 'shop_settings' %}">Settings</a>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-heading">Manage</div>
+      <a class="sidebar-link sidebar-link-primary" href="{% url 'shop_settings' %}"><i class="bi bi-gear-fill"></i><span>Settings</span></a>
 
       <!-- Logout -->
-      <form method="post" action="{% url 'logout' %}" class="px-3 py-2">
+      <form method="post" action="{% url 'logout' %}" class="sidebar-logout-form">
         {% csrf_token %}
-        <button type="submit" class="btn btn-outline-light w-100 text-start">Logout</button>
+        <button type="submit" class="sidebar-logout"><i class="bi bi-box-arrow-right"></i><span>Logout</span></button>
       </form>
     </div>
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
@@ -243,6 +257,14 @@
         const sidebarBackdrop = document.getElementById("sidebarBackdrop");
         const MOBILE_BREAKPOINT = 992;
 
+        const syncToggleState = () => {
+          if (!toggleBtn) return;
+          const expanded = window.innerWidth < MOBILE_BREAKPOINT
+            ? body.classList.contains("sidebar-open")
+            : !body.classList.contains("sidebar-collapsed");
+          toggleBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
+        };
+
         const applyInitialSidebarState = () => {
           if (window.innerWidth < MOBILE_BREAKPOINT) {
             body.classList.add("sidebar-collapsed");
@@ -250,6 +272,7 @@
           } else {
             body.classList.remove("sidebar-collapsed", "sidebar-open");
           }
+          syncToggleState();
         };
 
         if (toggleBtn) {
@@ -259,19 +282,22 @@
             } else {
               body.classList.toggle("sidebar-collapsed");
             }
+            syncToggleState();
           });
         }
 
         if (sidebarBackdrop) {
           sidebarBackdrop.addEventListener("click", () => {
             body.classList.remove("sidebar-open");
+            syncToggleState();
           });
         }
 
         document.querySelectorAll("#sidebarMenu a").forEach((link) => {
           link.addEventListener("click", () => {
-            if (window.innerWidth < MOBILE_BREAKPOINT) {
+            if (window.innerWidth < MOBILE_BREAKPOINT && !link.hasAttribute("data-bs-toggle")) {
               body.classList.remove("sidebar-open");
+              syncToggleState();
             }
           });
         });

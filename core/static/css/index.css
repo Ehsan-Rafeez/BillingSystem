@@ -2,6 +2,8 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  background: #f6f8fb;
+  color: #172033;
 }
 
 html {
@@ -14,50 +16,149 @@ video {
   max-width: 100%;
 }
 
-/* Sidebar hidden by default */
-.sidebar-menu {
-  height: calc(100vh - 56px);
-  width: 240px;
-  position: fixed;
-  top: 56px; /* Height of navbar */
-  left: 0;
-  background-color: #343a40;
-  color: white;
-  transition: transform 0.3s ease;
-  padding-top: 20px;
-  z-index: 999;
-  overflow-y: auto;
-  transform: translateX(0);
+.app-navbar {
+  height: 72px;
+  padding: 0;
+  background: #14202b;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, .14);
+  z-index: 1030;
 }
 
-body.sidebar-collapsed .sidebar-menu {
-  transform: translateX(-240px);
+.app-navbar-inner {
+  height: 100%;
+  padding: 0 1.25rem;
 }
 
-.sidebar-menu a {
-  display: flex;
-  padding: 12px 20px;
-  color: white;
+.app-brand {
+  min-width: 0;
+  margin: 0;
+  color: #fff !important;
   text-decoration: none;
 }
 
-.sidebar-menu a:hover {
-  background-color: #495057;
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-right: .7rem;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .16);
 }
 
-/* ✅ Brand Logo styling */
+.sidebar-menu {
+  height: calc(100vh - 72px);
+  height: calc(100dvh - 72px);
+  width: 272px;
+  position: fixed;
+  top: 72px;
+  left: 0;
+  background: #1d2935;
+  color: white;
+  transition: transform 0.3s ease;
+  padding: 1.1rem .8rem 1rem;
+  z-index: 1020;
+  overflow-y: auto;
+  transform: translateX(0);
+  box-shadow: 8px 0 26px rgba(15, 23, 42, .08);
+}
+
+body.sidebar-collapsed .sidebar-menu {
+  transform: translateX(-272px);
+}
+
 .brand-logo {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
-  border-radius: 5px;
-  background-color: white;
-  padding: 2px;
+  border-radius: 7px;
 }
 
-/* ✅ Brand text styling */
+.brand-copy {
+  display: grid;
+  gap: .05rem;
+  min-width: 0;
+}
+
 .brand-text {
-  font-size: 1.25rem;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1.15rem;
+  line-height: 1.15;
+}
+
+.brand-copy small {
+  color: #92a6b8;
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.navbar-context {
+  align-items: center;
+  gap: .45rem;
+  color: #a9bbc9;
+  font-size: .88rem;
+}
+
+.navbar-context i {
+  color: #53dbc4;
+  font-size: 1.05rem;
+}
+
+.sidebar-heading {
+  padding: .35rem .85rem .55rem;
+  color: #7f96a8;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  min-height: 44px;
+  margin: .18rem 0;
+  padding: .68rem .82rem;
+  border-radius: 10px;
+  color: #dce7ee !important;
+  font-size: .92rem;
+  font-weight: 650;
+  text-decoration: none;
+  transition: background .18s ease, color .18s ease, transform .18s ease;
+}
+
+.sidebar-link i {
+  width: 1.25rem;
+  color: #8fa8b8;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.sidebar-link:hover,
+.sidebar-link:focus-visible {
+  background: #2b3b49;
+  color: #fff !important;
+}
+
+.sidebar-link:hover i,
+.sidebar-link:focus-visible i {
+  color: #62e3ce;
+}
+
+.sidebar-link-primary {
+  background: rgba(77, 220, 197, .1);
+}
+
+.sidebar-link-primary i {
+  color: #55dcc5;
 }
 
 /* ✅ Profile avatar styling */
@@ -71,8 +172,8 @@ body.sidebar-collapsed .sidebar-menu {
 /* Content */
 .main-content {
   transition: margin-left 0.3s ease;
-  padding: 70px 24px 40px 24px;
-  margin-left: 240px;
+  padding: 88px 28px 40px;
+  margin-left: 272px;
   min-width: 0;
 }
 
@@ -104,76 +205,116 @@ body.sidebar-collapsed .main-content {
   min-height: 40px;
 }
 
-/* Styles for collapsible submenu */
 .sidebar-menu ul {
   list-style: none;
-  padding-left: 0;
+  padding: .2rem 0 .35rem 1rem;
   margin: 0;
+  border-left: 1px solid rgba(143, 168, 184, .22);
 }
 
 .sidebar-menu ul li a {
-  padding-left: 20px;
-  display: block;
-  color: white;
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  min-height: 36px;
+  padding: .48rem .65rem;
+  border-radius: 8px;
+  color: #afc1cc !important;
+  font-size: .82rem;
   text-decoration: none;
 }
 
+.sidebar-menu ul li a i {
+  width: 1rem;
+  color: #7792a3;
+}
+
 .sidebar-menu ul li a:hover {
-  background-color: #495057;
+  background: #2b3b49;
+  color: #fff !important;
 }
 
-/* Adjust caret icon (toggle arrow) */
 .sidebar-menu a.dropdown-toggle::after {
-  float: right;
-  margin-top: 2px;
-  content: "▼"; /* Down arrow initially */
-  font-size: 0.6em;
-  margin-right: 4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 10px;
-  height: 100%;
-  transition: transform 0.3s ease;
-  transform: rotate(0deg); /* Default rotation is 0 */
+  margin-left: auto;
+  content: "\f285";
+  border: 0;
+  font-family: "bootstrap-icons";
+  font-size: .8rem;
+  transform: rotate(0deg);
+  transition: transform .2s ease;
 }
 
-/* Rotate arrow when expanded with smooth animation */
 .sidebar-menu a[aria-expanded="true"]::after {
-  transform: rotate(180deg); /* Rotate to up arrow (▲) */
-  content: "▲"; /* Change to up arrow when expanded */
+  transform: rotate(90deg);
 }
 
 .sidebar-toggle-btn {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  border: 1px solid #6c757d;
-  background-color: #2b3035;
+  border: 1px solid rgba(255,255,255,.22);
+  background: #263542;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
   cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.2s ease;
+  color: #f5d988;
+  font-size: 1.45rem;
+  transition: background .2s ease, border-color .2s ease;
 }
 
 .sidebar-toggle-btn:hover {
-  background-color: #23272b;
-}
-
-.sidebar-toggle-btn span {
-  width: 18px;
-  height: 2px;
-  background: linear-gradient(90deg, #f8f9fa, #e4c76f, #f8f9fa);
-  border-radius: 2px;
+  background: #334958;
+  border-color: rgba(255,255,255,.38);
 }
 
 .sidebar-toggle-btn:focus-visible {
   outline: 2px solid #f8f9fa;
   outline-offset: 2px;
+}
+
+.sidebar-divider {
+  height: 1px;
+  margin: 1rem .8rem .85rem;
+  background: rgba(143, 168, 184, .18);
+}
+
+.sidebar-logout-form {
+  margin: .65rem 0 0;
+  padding: 0 .1rem;
+}
+
+.sidebar-logout {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  width: 100%;
+  min-height: 44px;
+  padding: .68rem .82rem;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 10px;
+  background: transparent;
+  color: #c5d3dc;
+  font: inherit;
+  font-size: .92rem;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+  transition: background .18s ease, border-color .18s ease, color .18s ease;
+}
+
+.sidebar-logout i {
+  width: 1.25rem;
+  color: #f19a9a;
+  text-align: center;
+}
+
+.sidebar-logout:hover,
+.sidebar-logout:focus-visible {
+  border-color: rgba(241,154,154,.5);
+  background: rgba(241,154,154,.1);
+  color: #fff;
+  outline: none;
 }
 
 /* Sidebar mobile behavior */
@@ -189,7 +330,7 @@ body.sidebar-collapsed .main-content {
 
   .main-content {
     margin-left: 0;
-    padding: 76px 16px 28px 16px;
+    padding: 88px 16px 28px 16px;
   }
 
   .sidebar-toggle-btn {
@@ -199,9 +340,7 @@ body.sidebar-collapsed .main-content {
     gap: 4px;
   }
 
-  .sidebar-toggle-btn span {
-    width: 16px;
-  }
+  .app-navbar-inner { padding: 0 1rem; }
 }
 
 /* Sidebar backdrop for mobile */
@@ -223,11 +362,17 @@ body.sidebar-open .sidebar-backdrop {
 /* General responsive helpers */
 @media (max-width: 575.98px) {
   .brand-text {
-    display: none;
+    max-width: 180px;
+    font-size: 1rem;
+  }
+
+  .brand-copy small,
+  .navbar-context {
+    display: none !important;
   }
 
   .main-content {
-    padding: 76px 12px 24px 12px;
+    padding: 84px 12px 24px 12px;
   }
 
   .app-container {
@@ -244,6 +389,9 @@ body.sidebar-open .sidebar-backdrop {
   .h2 {
     font-size: 1.45rem;
   }
+
+  .brand-mark { width: 36px; height: 36px; margin-right: .55rem; }
+  .brand-logo { width: 29px; height: 29px; }
 }
 
 /* Form and table tweaks for small screens */
