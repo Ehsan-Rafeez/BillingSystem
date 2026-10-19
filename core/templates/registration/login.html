@@ -196,6 +196,28 @@
       font-weight: 600;
       letter-spacing: 0.2px;
     }
+    .password-shell {
+      padding-right: .45rem;
+    }
+    .password-toggle {
+      flex: 0 0 auto;
+      width: 2.5rem;
+      height: 2.5rem;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--accent);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      font-size: 1.15rem;
+    }
+    .password-toggle:hover,
+    .password-toggle:focus-visible {
+      background: rgba(20, 241, 198, 0.12);
+      outline: 2px solid rgba(20, 241, 198, 0.45);
+      outline-offset: 1px;
+    }
     .input-shell input::placeholder { color: rgba(233,242,255,0.5); }
     .btn-submit {
       width: 100%;
@@ -348,7 +370,7 @@
               </div>
               <div class="field">
                 <label for="{{ form.password.id_for_label }}">Password</label>
-                <div class="input-shell">
+                <div class="input-shell password-shell">
                   <i class="bi bi-shield-lock"></i>
                   <input type="password"
                          name="{{ form.password.html_name }}"
@@ -356,6 +378,13 @@
                          placeholder="••••••••"
                          autocomplete="current-password"
                          required>
+                  <button type="button"
+                          class="password-toggle"
+                          id="passwordToggle"
+                          aria-label="Show password"
+                          title="Show password">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                  </button>
                 </div>
                 {{ form.password.errors }}
               </div>
@@ -366,5 +395,20 @@
       </div>
     </div>
   </div>
+  <script>
+    (function () {
+      const passwordInput = document.getElementById("{{ form.password.id_for_label }}");
+      const passwordToggle = document.getElementById("passwordToggle");
+      const icon = passwordToggle?.querySelector("i");
+
+      passwordToggle?.addEventListener("click", function () {
+        const isHidden = passwordInput.type === "password";
+        passwordInput.type = isHidden ? "text" : "password";
+        passwordToggle.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+        passwordToggle.title = isHidden ? "Hide password" : "Show password";
+        icon.className = isHidden ? "bi bi-eye-slash" : "bi bi-eye";
+      });
+    })();
+  </script>
 </body>
 </html>
