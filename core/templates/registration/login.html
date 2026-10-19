@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -136,17 +137,21 @@
       border-bottom: 1px solid var(--stroke);
     }
     .badge-logo {
-      width: 54px;
-      height: 54px;
-      border-radius: 16px;
-      background: linear-gradient(135deg, rgba(20,241,198,0.16), rgba(122,228,255,0.16));
-      border: 1px solid rgba(255,255,255,0.18);
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(20,241,198,0.2), rgba(122,228,255,0.18));
+      border: 1px solid rgba(255,255,255,0.24);
       display: grid;
       place-items: center;
-      color: #fefefe;
-      font-weight: 800;
-      font-size: 1.25rem;
+      box-shadow: 0 10px 28px rgba(0,0,0,.2);
       margin-bottom: .75rem;
+    }
+    .badge-logo img {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+      image-rendering: auto;
     }
     .auth-title { font-size: 1.4rem; font-weight: 700; margin: 0; }
     .auth-sub { color: var(--muted); margin: .35rem 0 0; }
@@ -168,13 +173,14 @@
       letter-spacing: 0.2px;
     }
     .input-shell {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--stroke);
+      min-height: 58px;
+      background: rgba(4, 16, 31, 0.42);
+      border: 1px solid rgba(255,255,255,0.18);
       border-radius: 12px;
       display: flex;
       align-items: center;
       gap: .65rem;
-      padding: .15rem .75rem;
+      padding: .2rem .75rem;
       transition: border-color .2s ease, box-shadow .2s ease, transform .15s ease;
     }
     .input-shell:focus-within {
@@ -187,14 +193,22 @@
       font-size: 1.1rem;
     }
     .input-shell input {
-      background: transparent;
+      background: transparent !important;
       border: none;
-      color: #fdfdfd;
+      color: #f5fbff !important;
       width: 100%;
       padding: .75rem .25rem;
       outline: none;
       font-weight: 600;
       letter-spacing: 0.2px;
+    }
+    .input-shell input:-webkit-autofill,
+    .input-shell input:-webkit-autofill:hover,
+    .input-shell input:-webkit-autofill:focus {
+      -webkit-text-fill-color: #f5fbff;
+      -webkit-box-shadow: 0 0 0 1000px rgba(4, 16, 31, 0.42) inset;
+      box-shadow: 0 0 0 1000px rgba(4, 16, 31, 0.42) inset;
+      transition: background-color 9999s ease-out 0s;
     }
     .password-shell {
       padding-right: .45rem;
@@ -286,6 +300,10 @@
       .brand-panel {
         padding: 1rem;
       }
+      .badge-logo {
+        width: 58px;
+        height: 58px;
+      }
       .brand-title {
         font-size: 1.75rem;
       }
@@ -338,7 +356,9 @@
       <div class="col-lg-5 offset-lg-1">
         <div class="auth-card">
           <div class="auth-top">
-            <div class="badge-logo">B</div>
+            <div class="badge-logo" aria-label="Billing System logo">
+              <img src="{% static 'images/icons8-school-48.png' %}" alt="Billing System">
+            </div>
             <div class="d-flex align-items-center justify-content-between">
               <div>
                 <div class="auth-title">Welcome back</div>
