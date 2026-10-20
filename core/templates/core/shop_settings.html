@@ -30,9 +30,14 @@
         <div class="col-lg-5">
           <label class="form-label">Invoice Logo</label>
           {{ form.invoice_logo }}
-          {% if shop.invoice_logo %}
+          <div class="form-text">Use PNG, JPG, JPEG, WebP, or GIF. CorelDRAW files such as .cdr cannot be displayed in a browser.</div>
+          {% if shop.displayable_invoice_logo %}
             <div class="mt-2">
               <img src="{{ shop.invoice_logo.url }}" alt="Current logo" style="max-height:80px; max-width:180px;">
+            </div>
+          {% elif shop.invoice_logo %}
+            <div class="alert alert-warning mt-2 mb-0 py-2">
+              The current logo file cannot be previewed by the browser. Upload a PNG, JPG, JPEG, WebP, or GIF image to replace it.
             </div>
           {% endif %}
         </div>

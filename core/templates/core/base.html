@@ -28,7 +28,7 @@
         <div class="d-flex align-items-center gap-2">
           <a class="navbar-brand app-brand d-flex align-items-center" href="{% url 'index' %}">
             <span class="brand-mark">
-              {% if request.shop and request.shop.invoice_logo %}
+              {% if request.shop and request.shop.displayable_invoice_logo %}
                 <img src="{{ request.shop.invoice_logo.url }}" alt="" class="brand-logo" />
               {% else %}
                 <img src="{% static 'images/icons8-school-48.png' %}" alt="" class="brand-logo" />

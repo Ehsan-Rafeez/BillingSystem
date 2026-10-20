@@ -1,4 +1,5 @@
 from django import forms
+from pathlib import Path
 
 from .models import Shop
 
@@ -23,7 +24,12 @@ class ShopInvoiceSettingsForm(forms.ModelForm):
         ]
         widgets = {
             "invoice_shop_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Name shown on invoice"}),
-            "invoice_logo": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "invoice_logo": forms.ClearableFileInput(
+                attrs={
+                    "class": "form-control",
+                    "accept": ".png,.jpg,.jpeg,.webp,.gif",
+                }
+            ),
             "bank_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "e.g., Meezan Bank"}),
             "bank_account_title": forms.TextInput(attrs={"class": "form-control", "placeholder": "Account title"}),
             "bank_account_number": forms.TextInput(attrs={"class": "form-control", "placeholder": "Account number"}),
@@ -42,3 +48,11 @@ class ShopInvoiceSettingsForm(forms.ModelForm):
             "show_invoice_logo": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
             "show_invoice_bank_details": forms.CheckboxInput(attrs={"class": "form-check-input", "role": "switch"}),
         }
+
+    def clean_invoice_logo(self):
+        uploaded = self.files.get("invoice_logo")
+        if uploaded:
+            extension = Path(uploaded.name).suffix.lower()
+            if extension not in {".png", ".jpg", ".jpeg", ".webp", ".gif"}:
+                raise forms.ValidationError("Please upload a PNG, JPG, JPEG, WebP, or GIF image.")
+        return self.cleaned_data.get("invoice_logo")

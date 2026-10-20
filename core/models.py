@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
+from pathlib import Path
 import secrets
 
 
@@ -74,6 +75,13 @@ class Shop(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def displayable_invoice_logo(self):
+        """Whether the stored logo can be rendered directly by a browser."""
+        if not self.invoice_logo:
+            return False
+        return Path(self.invoice_logo.name).suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 
 
 class ApiToken(models.Model):

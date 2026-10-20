@@ -38,7 +38,7 @@
   <div class="invoice-card">
     <div class="invoice-head">
       <div>
-        {% if shop and shop.show_invoice_logo and shop.invoice_logo %}
+        {% if shop and shop.show_invoice_logo and shop.displayable_invoice_logo %}
           <img class="invoice-logo mb-3" src="{{ shop.invoice_logo.url }}" alt="{{ invoice_shop_name }}">
         {% endif %}
         {% if shop and shop.show_invoice_shop_name %}
