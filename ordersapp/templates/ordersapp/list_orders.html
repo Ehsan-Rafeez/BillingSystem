@@ -299,6 +299,11 @@
     let shown=0, sumTotal=0, sumRece=0, sumDue=0;
 
     for(const tr of tbody.querySelectorAll('tr')){
+      // The empty-state row has no data-id and must not be counted as an order.
+      if(!tr.dataset.id){
+        tr.style.display = '';
+        continue;
+      }
       const order   = tr.dataset.order || '';
       const cust    = tr.dataset.customer || '';
       const ev      = tr.dataset.event || '';
