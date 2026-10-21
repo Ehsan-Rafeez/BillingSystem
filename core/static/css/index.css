@@ -294,6 +294,8 @@ body.sidebar-collapsed .main-content {
 .app-container {
   max-width: 1600px;
   min-width: 0;
+  container-type: inline-size;
+  container-name: app-content;
 }
 
 .card,
