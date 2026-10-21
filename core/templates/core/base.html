@@ -53,6 +53,41 @@
           <i class="bi bi-shield-check" aria-hidden="true"></i>
           <span>{% if request.shop %}{{ request.shop.name }}{% else %}Billing System{% endif %}</span>
         </div>
+        <div class="navbar-actions">
+          <div class="dropdown">
+            <button class="notification-button" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Order reminders" title="Order reminders">
+              <i class="bi bi-bell" aria-hidden="true"></i>
+              {% if order_reminder_count %}<span class="notification-count">{{ order_reminder_count }}</span>{% endif %}
+            </button>
+            <div class="dropdown-menu dropdown-menu-end notification-menu">
+              <div class="notification-menu-header">
+                <strong>Order reminders</strong>
+                <a href="{% url 'list_orders' %}">View orders</a>
+              </div>
+              {% if upcoming_order_reminders %}
+                <div class="notification-section-label">Upcoming in 7 days</div>
+                {% for reminder in upcoming_order_reminders %}
+                  <a class="notification-item" href="{% url 'order_invoice' reminder.id %}">
+                    <span class="notification-icon notification-icon-upcoming"><i class="bi bi-calendar-event"></i></span>
+                    <span><strong>{{ reminder.customer_name }}</strong><small>{{ reminder.delivery_date|date:"M d, Y" }}{% if reminder.delivery_time %} · {{ reminder.delivery_time|time:"h:i A" }}{% endif %}</small></span>
+                  </a>
+                {% endfor %}
+              {% endif %}
+              {% if overdue_order_reminders %}
+                <div class="notification-section-label notification-section-overdue">Overdue pending orders</div>
+                {% for reminder in overdue_order_reminders %}
+                  <a class="notification-item" href="{% url 'order_invoice' reminder.id %}">
+                    <span class="notification-icon notification-icon-overdue"><i class="bi bi-exclamation-circle"></i></span>
+                    <span><strong>{{ reminder.customer_name }}</strong><small>Delivery was {{ reminder.delivery_date|date:"M d, Y" }}</small></span>
+                  </a>
+                {% endfor %}
+              {% endif %}
+              {% if not upcoming_order_reminders and not overdue_order_reminders %}
+                <div class="notification-empty"><i class="bi bi-check-circle"></i>No order reminders right now.</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
       </div>
     </nav>
 
