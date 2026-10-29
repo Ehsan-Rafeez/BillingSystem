@@ -314,6 +314,11 @@ def quote_list(request):
 
 @require_http_methods(["GET", "POST"])
 def quote_create(request):
+    menu_items = tenant_queryset(request, MenuItem.objects.filter(is_active=True)).order_by("name")
+    menu_options = [
+        {"id": item.id, "name": item.name, "price": str(item.price_per_portion)}
+        for item in menu_items
+    ]
     if request.method == "POST":
         form = QuoteForm(request.POST)
         formset = QuoteItemFormSet(request.POST)
@@ -338,12 +343,17 @@ def quote_create(request):
     else:
         form = QuoteForm()
         formset = QuoteItemFormSet()
-    return render(request, "ordersapp/quote_form.html", {"form": form, "formset": formset, "is_edit": False})
+    return render(request, "ordersapp/quote_form.html", {"form": form, "formset": formset, "is_edit": False, "menu_options": menu_options})
 
 
 @require_http_methods(["GET", "POST"])
 def quote_update(request, quote_id):
     quote = tenant_get_object_or_404(request, Quote.objects.all(), id=quote_id)
+    menu_items = tenant_queryset(request, MenuItem.objects.filter(is_active=True)).order_by("name")
+    menu_options = [
+        {"id": item.id, "name": item.name, "price": str(item.price_per_portion)}
+        for item in menu_items
+    ]
     if request.method == "POST":
         form = QuoteForm(request.POST, instance=quote)
         formset = QuoteItemFormSet(request.POST, instance=quote)
@@ -368,7 +378,7 @@ def quote_update(request, quote_id):
     else:
         form = QuoteForm(instance=quote)
         formset = QuoteItemFormSet(instance=quote)
-    return render(request, "ordersapp/quote_form.html", {"form": form, "formset": formset, "is_edit": True, "quote": quote})
+    return render(request, "ordersapp/quote_form.html", {"form": form, "formset": formset, "is_edit": True, "quote": quote, "menu_options": menu_options})
 
 
 @require_http_methods(["GET"])

@@ -99,6 +99,7 @@
   </div>
 </div>
 
+{{ menu_options|json_script:"quoteMenuOptions" }}
 <script>
 (function(){
   const form = document.getElementById('quoteForm');
@@ -106,6 +107,28 @@
   const addBtn = document.getElementById('addRow');
   const totalForms = document.querySelector('input[name="{{ formset.prefix }}-TOTAL_FORMS"]');
   const emptyIndex = () => parseInt(totalForms.value, 10);
+  const menuOptions = JSON.parse(document.getElementById('quoteMenuOptions').textContent);
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>'"]/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[character]));
+  }
+
+  function menuOptionMarkup(selectedId = '') {
+    return '<option value="">-- choose menu item --</option>' + menuOptions.map((item) => `
+      <option value="${item.id}" data-price="${escapeHtml(item.price)}" ${String(item.id) === String(selectedId) ? 'selected' : ''}>
+        ${escapeHtml(item.name)} - PKR ${escapeHtml(item.price)}
+      </option>`).join('');
+  }
+
+  function applyMenuPrice(row) {
+    const menuSelect = row.querySelector('select[name$="-menu_item"]');
+    const priceInput = row.querySelector('input[name$="-unit_price"]');
+    if (!menuSelect || !priceInput || !menuSelect.value) return;
+    const selected = menuOptions.find((item) => String(item.id) === String(menuSelect.value));
+    if (selected) priceInput.value = selected.price;
+  }
 
   function updateLineTotals(){
     tableBody.querySelectorAll('tr').forEach(row => {
@@ -123,7 +146,7 @@
     const idx = emptyIndex();
     const tmpl = `
       <tr>
-        <td><select name="{{ formset.prefix }}-${idx}-menu_item" class="form-control"></select></td>
+        <td><select name="{{ formset.prefix }}-${idx}-menu_item" class="form-control">${menuOptionMarkup()}</select></td>
         <td><input type="text" name="{{ formset.prefix }}-${idx}-description" class="form-control"></td>
         <td><input type="number" name="{{ formset.prefix }}-${idx}-quantity" class="form-control" value="1" min="1"></td>
         <td><input type="number" step="0.01" name="{{ formset.prefix }}-${idx}-unit_price" class="form-control" value="0.00"></td>
@@ -137,11 +160,23 @@
 
   addBtn?.addEventListener('click', addRow);
   tableBody.addEventListener('input', updateLineTotals);
+  tableBody.addEventListener('change', (e)=>{
+    if (e.target.matches('select[name$="-menu_item"]')) {
+      applyMenuPrice(e.target.closest('tr'));
+      updateLineTotals();
+    }
+  });
   tableBody.addEventListener('click', (e)=>{
     if(e.target.closest('.remove-row')){
       e.target.closest('tr').remove();
       updateLineTotals();
     }
+  });
+  tableBody.querySelectorAll('select[name$="-menu_item"]').forEach((select) => {
+    select.querySelectorAll('option').forEach((option) => {
+      const item = menuOptions.find((entry) => String(entry.id) === String(option.value));
+      if (item) option.dataset.price = item.price;
+    });
   });
   updateLineTotals();
 })();
