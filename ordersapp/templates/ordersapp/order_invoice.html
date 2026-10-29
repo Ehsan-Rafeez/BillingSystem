@@ -12,11 +12,24 @@
   .invoice-title { font-size:1.75rem; font-weight:800; margin:0; }
   .muted { color:#64748b; }
   .print-actions { display:flex; justify-content:space-between; gap:.75rem; margin-bottom:1rem; }
+  .invoice-card > * { break-inside: avoid; }
   @media print {
+    @page { size: A4 portrait; margin: 8mm; }
     .navbar, .sidebar-menu, .sidebar-backdrop, .print-actions { display:none !important; }
+    html, body { background:#fff !important; }
     .main-content { margin:0 !important; padding:0 !important; }
     .invoice-shell { max-width:100%; margin:0; }
-    .invoice-card { border:0; border-radius:0; }
+    .invoice-card { border:0; border-radius:0; zoom:.82; }
+    .invoice-head { padding:.7rem 0; gap:1rem; }
+    .invoice-section { padding:.7rem 0; }
+    .invoice-logo { max-height:55px; margin-bottom:.35rem !important; }
+    .invoice-title { font-size:1.35rem; }
+    .invoice-card .table { font-size:.82rem; }
+    .invoice-card .table > :not(caption) > * > * { padding:.3rem .45rem; }
+    .invoice-card .py-2 { padding-top:.25rem !important; padding-bottom:.25rem !important; }
+    .invoice-card .g-4 { --bs-gutter-x:1rem; --bs-gutter-y:.5rem; }
+    .invoice-card .mt-2 { margin-top:.35rem !important; }
+    .invoice-card .fs-5 { font-size:1rem !important; }
   }
 </style>
 
@@ -31,11 +44,14 @@
     <a href="{% url 'list_orders' %}" class="btn btn-light border"><i class="bi bi-arrow-left me-1"></i>Back</a>
     <div class="d-flex gap-2">
       <a href="{% url 'edit_order' order.id %}" class="btn btn-outline-secondary"><i class="bi bi-pencil-square me-1"></i>Edit</a>
-      <button type="button" class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print</button>
+      <div class="d-flex flex-wrap justify-content-end gap-2">
+        <button type="button" class="btn btn-outline-primary" onclick="downloadInvoiceImage()"><i class="bi bi-image me-1"></i>Save Image</button>
+        <button type="button" class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print / Save PDF</button>
+      </div>
     </div>
   </div>
 
-  <div class="invoice-card">
+  <div class="invoice-card" id="invoiceCard">
     <div class="invoice-head">
       <div>
         {% if shop and shop.show_invoice_logo and shop.displayable_invoice_logo %}
@@ -142,4 +158,41 @@
     </div>
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+  async function downloadInvoiceImage() {
+    const invoice = document.getElementById('invoiceCard');
+    if (!invoice || typeof html2canvas === 'undefined') {
+      window.alert('Image export is not available. Please try again after the page finishes loading.');
+      return;
+    }
+
+    const button = document.querySelector('[onclick="downloadInvoiceImage()"]');
+    if (button) {
+      button.disabled = true;
+      button.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Preparing...';
+    }
+
+    try {
+      const canvas = await html2canvas(invoice, {
+        backgroundColor: '#ffffff',
+        scale: Math.min(window.devicePixelRatio || 1, 2),
+        useCORS: true,
+        logging: false,
+      });
+      const link = document.createElement('a');
+      link.download = 'invoice-{{ order.id }}.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      window.alert('The invoice image could not be created. Please try again.');
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.innerHTML = '<i class="bi bi-image me-1"></i>Save Image';
+      }
+    }
+  }
+</script>
 {% endblock %}

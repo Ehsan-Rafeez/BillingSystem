@@ -20,6 +20,7 @@ urlpatterns = [
     path('quotes/create/', views.quote_create, name='quote_create'),
     path('quotes/<int:quote_id>/edit/', views.quote_update, name='quote_update'),
     path('quotes/<int:quote_id>/', views.quote_detail, name='quote_detail'),
+    path('quotes/<int:quote_id>/convert-to-order/', views.quote_convert_to_order, name='quote_convert_to_order'),
 
     # Reports
     path('reports/revenue/', views.revenue_report, name='revenue_report'),

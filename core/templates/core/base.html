@@ -5,6 +5,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Billing System{% endblock %}</title>
+    {% if request.shop and request.shop.displayable_invoice_logo %}
+      <link rel="icon" href="{{ request.shop.invoice_logo.url }}?v={{ request.shop.updated_at|date:'U' }}" />
+      <link rel="apple-touch-icon" href="{{ request.shop.invoice_logo.url }}?v={{ request.shop.updated_at|date:'U' }}" />
+    {% else %}
+      <link rel="icon" type="image/png" href="{% static 'images/icons8-school-48.png' %}" />
+    {% endif %}
 
     <!-- Bootstrap CSS -->
     <link

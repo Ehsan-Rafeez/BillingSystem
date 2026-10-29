@@ -38,6 +38,40 @@
     color: #dc3545;
     font-weight: 600;
   }
+  .menu-qty-stepper {
+    display: inline-flex;
+    align-items: center;
+    max-width: 132px;
+    border: 1px solid #cbd5e1;
+    border-radius: .5rem;
+    overflow: hidden;
+    background: #fff;
+  }
+  .menu-qty-button {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    background: #f8fafc;
+    color: #0d6efd;
+    font-size: 1rem;
+  }
+  .menu-qty-button:hover,
+  .menu-qty-button:focus-visible { background: #e7f0ff; outline: none; }
+  .menu-qty-button:disabled { color: #94a3b8; cursor: not-allowed; }
+  .menu-qty-label {
+    display: inline-grid;
+    place-items: center;
+    min-width: 42px;
+    height: 36px;
+    padding: 0 .35rem;
+    border-left: 1px solid #e2e8f0;
+    border-right: 1px solid #e2e8f0;
+    font-weight: 700;
+    text-align: center;
+  }
   @media (max-width: 991.98px) {
     .summary-card {
       position: static;
@@ -140,15 +174,6 @@
                          value="{% if is_edit %}{{ order.email }}{% endif %}">
                 </div>
 
-                <div class="col-md-6">
-                  <label class="form-label"><i class="bi bi-person-lines-fill"></i>Customer Type</label>
-                  <select name="customer_type" class="form-select">
-                    <option value="regular" {% if is_edit and order.customer_type == 'regular' %}selected{% endif %}>Regular</option>
-                    <option value="premium" {% if is_edit and order.customer_type == 'premium' %}selected{% endif %}>Premium</option>
-                    <option value="vip" {% if is_edit and order.customer_type == 'vip' %}selected{% endif %}>VIP</option>
-                  </select>
-                </div>
-
                 <!-- Phone Number -->
                 <div class="col-md-6">
                   <label class="form-label required"><i class="bi bi-telephone"></i>Phone Number</label>
@@ -244,7 +269,11 @@
                           <input type="hidden" name="menu_item_ids[]" value="{{ item.menu_item_id }}">
                         </td>
                         <td>
-                          <span class="menu-qty-label">{{ item.quantity }}</span>
+                          <div class="menu-qty-stepper" aria-label="Quantity for {{ item.menu_item.name }}">
+                            <button type="button" class="menu-qty-button menu-qty-minus" aria-label="Decrease quantity"><i class="bi bi-dash"></i></button>
+                            <span class="menu-qty-label">{{ item.quantity }}</span>
+                            <button type="button" class="menu-qty-button menu-qty-plus" aria-label="Increase quantity"><i class="bi bi-plus"></i></button>
+                          </div>
                           <input type="hidden" name="menu_quantities[]" value="{{ item.quantity }}">
                         </td>
                         <td>
@@ -504,7 +533,11 @@
           <input type="hidden" name="menu_item_ids[]" value="${id}">
         </td>
         <td>
-          <span class="menu-qty-label">${qty}</span>
+          <div class="menu-qty-stepper" aria-label="Quantity for ${name}">
+            <button type="button" class="menu-qty-button menu-qty-minus" aria-label="Decrease quantity"><i class="bi bi-dash"></i></button>
+            <span class="menu-qty-label">${qty}</span>
+            <button type="button" class="menu-qty-button menu-qty-plus" aria-label="Increase quantity"><i class="bi bi-plus"></i></button>
+          </div>
           <input type="hidden" name="menu_quantities[]" value="${qty}">
         </td>
         <td>
@@ -577,10 +610,33 @@
     });
 
     menuTbody.addEventListener('click', (e)=>{
+      const qtyButton = e.target.closest('.menu-qty-button');
+      if (qtyButton) {
+        const row = qtyButton.closest('tr');
+        const qtyInput = row?.querySelector('input[name="menu_quantities[]"]');
+        const qtyLabel = row?.querySelector('.menu-qty-label');
+        if (row && qtyInput && qtyLabel) {
+          const current = parseInt(qtyInput.value || '1', 10) || 1;
+          const next = qtyButton.classList.contains('menu-qty-plus') ? current + 1 : Math.max(1, current - 1);
+          qtyInput.value = String(next);
+          qtyLabel.textContent = String(next);
+          row.querySelector('.menu-qty-minus')?.toggleAttribute('disabled', next <= 1);
+          recalc();
+        }
+        return;
+      }
       const btn = e.target.closest('.remove-menu');
       if(!btn) return;
       btn.closest('tr')?.remove();
       recalc();
+    });
+
+    menuTbody.querySelectorAll('tr').forEach((row) => {
+      const qtyInput = row.querySelector('input[name="menu_quantities[]"]');
+      const minusButton = row.querySelector('.menu-qty-minus');
+      if (qtyInput && minusButton) {
+        minusButton.toggleAttribute('disabled', (parseInt(qtyInput.value || '1', 10) || 1) <= 1);
+      }
     });
 
     // Basic client checks before SweetAlert

@@ -378,6 +378,65 @@ def quote_detail(request, quote_id):
     return render(request, "ordersapp/quote_detail.html", {"quote": quote, "items": items})
 
 
+@require_http_methods(["POST"])
+def quote_convert_to_order(request, quote_id):
+    quote = tenant_get_object_or_404(
+        request,
+        Quote.objects.select_related("event", "event__customer"),
+        id=quote_id,
+    )
+    items = list(quote.items.select_related("menu_item"))
+    if not items:
+        messages.error(request, "This quotation has no items to convert.")
+        return redirect("quote_detail", quote_id=quote.id)
+    if any(item.menu_item_id is None for item in items):
+        messages.error(request, "Every quotation item must be linked to a menu item before conversion.")
+        return redirect("quote_detail", quote_id=quote.id)
+
+    event = quote.event
+    customer = event.customer
+    subtotal = sum((item.line_total or Decimal("0.00")) for item in items)
+    discount_amount = max(subtotal - quote.total_amount, Decimal("0.00"))
+    phone = event.billing_contact_phone or customer.phone or ""
+    email = event.billing_contact_email or customer.email or ""
+    address = customer.address or event.location or ""
+
+    with transaction.atomic():
+        order = Order.objects.create(
+            order_date=timezone.localdate(),
+            customer_name=event.billing_contact_name or customer.name,
+            address=address,
+            phone_number=phone,
+            location=event.location,
+            delivery_date=event.event_date,
+            delivery_time=event.event_time,
+            catering_date=event.event_date,
+            catering_time=event.event_time,
+            total_amount=quote.total_amount,
+            discount_amount=discount_amount,
+            received_amount=Decimal("0.00"),
+            cnic_number=customer.cnic or "0000000000000",
+            email=email,
+            event=event,
+        )
+        assign_shop(request, order)
+        order.save(update_fields=["shop"])
+        OrderMenuItem.objects.bulk_create([
+            OrderMenuItem(
+                order=order,
+                menu_item=item.menu_item,
+                quantity=item.quantity,
+                note=item.description or "",
+            )
+            for item in items
+        ])
+        quote.status = Quote.ACCEPTED
+        quote.save(update_fields=["status", "updated_at"])
+
+    messages.success(request, f"Quotation converted to Order #{order.id}.")
+    return redirect("order_invoice", order_id=order.id)
+
+
 # -----------------------
 # Revenue Reports
 # -----------------------
