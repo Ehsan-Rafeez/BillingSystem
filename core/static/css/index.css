@@ -306,8 +306,14 @@ body.sidebar-collapsed .main-content {
 }
 
 .table-responsive {
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive > .table {
+  margin-bottom: 0;
 }
 
 .btn,
@@ -508,9 +514,105 @@ body.sidebar-open .sidebar-backdrop {
 
 /* Form and table tweaks for small screens */
 @media (max-width: 767.98px) {
+  .app-navbar {
+    height: auto;
+    min-height: 64px;
+  }
+
+  .app-navbar-inner {
+    min-height: 64px;
+    padding: .55rem .75rem;
+  }
+
+  .app-brand {
+    flex: 1 1 auto;
+    max-width: calc(100% - 54px);
+  }
+
+  .brand-text {
+    max-width: calc(100vw - 150px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .navbar-actions {
+    margin-left: .25rem;
+  }
+
+  .notification-menu {
+    position: fixed !important;
+    top: 58px !important;
+    right: .75rem !important;
+    left: .75rem !important;
+    width: auto;
+    max-height: calc(100dvh - 76px);
+    overflow-y: auto;
+  }
+
+  .main-content {
+    padding-top: 78px;
+    padding-right: .75rem;
+    padding-left: .75rem;
+  }
+
+  .main-content > .app-container {
+    width: 100%;
+    max-width: 100%;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    padding-right: 0;
+    padding-left: 0;
+    padding-top: 0 !important;
+  }
+
+  .main-content .card-body {
+    padding: .85rem;
+  }
+
+  .main-content .d-flex.justify-content-between,
+  .main-content .d-flex.align-items-center.justify-content-between {
+    flex-wrap: wrap;
+  }
+
+  .main-content .d-flex.justify-content-between > :first-child,
+  .main-content .d-flex.align-items-center.justify-content-between > :first-child {
+    min-width: 0;
+  }
+
+  .main-content .table-responsive {
+    margin-right: -.85rem;
+    margin-left: -.85rem;
+    padding-right: .85rem;
+    padding-left: .85rem;
+  }
+
+  .main-content .table-responsive > .table {
+    min-width: 620px;
+  }
+
+  .main-content form .row,
+  .main-content .row {
+    --bs-gutter-x: .75rem;
+  }
+
   form .form-control,
   form .form-select {
     width: 100%;
+  }
+
+  .form-control,
+  .form-select,
+  .input-group-text {
+    font-size: 16px;
+  }
+
+  .btn {
+    white-space: normal;
+  }
+
+  .modal-dialog {
+    margin: .6rem;
   }
 
   .table {
@@ -520,5 +622,46 @@ body.sidebar-open .sidebar-backdrop {
   .table th,
   .table td {
     white-space: nowrap;
+  }
+}
+
+@media (max-width: 400px) {
+  .app-navbar-inner {
+    padding-right: .55rem;
+    padding-left: .55rem;
+  }
+
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+    margin-right: .4rem;
+    border-radius: 8px;
+  }
+
+  .brand-logo {
+    width: 25px;
+    height: 25px;
+  }
+
+  .brand-text {
+    max-width: calc(100vw - 132px);
+    font-size: .9rem;
+  }
+
+  .sidebar-toggle-btn,
+  .notification-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  .main-content .card-body {
+    padding: .7rem;
+  }
+
+  .main-content .table-responsive {
+    margin-right: -.7rem;
+    margin-left: -.7rem;
+    padding-right: .7rem;
+    padding-left: .7rem;
   }
 }
