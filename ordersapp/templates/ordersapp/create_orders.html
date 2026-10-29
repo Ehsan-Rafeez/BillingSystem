@@ -528,8 +528,8 @@
         menuSearchHint.textContent = `Selected: ${matchingOption.textContent.trim()}`;
         menuSearchHint.classList.remove('text-danger');
       } else if (typed) {
-        menuSearchHint.textContent = 'Keep typing and choose one of the suggestions.';
-        menuSearchHint.classList.add('text-danger');
+        menuSearchHint.textContent = 'Choose a matching item from the suggestions.';
+        menuSearchHint.classList.remove('text-danger');
       } else {
         menuSearchHint.textContent = 'Start typing to find a menu item.';
         menuSearchHint.classList.remove('text-danger');
