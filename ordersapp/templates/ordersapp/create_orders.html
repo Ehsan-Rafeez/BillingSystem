@@ -224,8 +224,15 @@
               <h5 class="section-title mb-3"><i class="bi bi-egg-fried me-2"></i>Menu Items</h5>
               <div class="row g-3 align-items-end">
                 <div class="col-lg-6">
-                  <label class="form-label"><i class="bi bi-list"></i>Select Menu Item</label>
-                  <select class="form-select" id="menuSelect">
+                  <label class="form-label"><i class="bi bi-search"></i>Search Menu Item</label>
+                  <input type="search" class="form-control" id="menuSearch" list="menuSearchOptions" placeholder="Type item name to search..." autocomplete="off">
+                  <datalist id="menuSearchOptions">
+                    {% for m in menu_items %}
+                      <option value="{{ m.name }} ({{ m.category|default:'-' }}, {{ m.get_pricing_unit_display }}) - PKR {{ m.price_per_portion|default:'0.00' }}"></option>
+                    {% endfor %}
+                  </datalist>
+                  <div class="helper mt-1" id="menuSearchHint">Start typing to find a menu item.</div>
+                  <select class="form-select visually-hidden" id="menuSelect" aria-hidden="true" tabindex="-1">
                     <option value="">-- choose menu item --</option>
                     {% for m in menu_items %}
                       <option value="{{ m.id }}"
@@ -506,9 +513,31 @@
     });
     // Menu items UI
     const menuSelect = document.getElementById('menuSelect');
+    const menuSearch = document.getElementById('menuSearch');
+    const menuSearchHint = document.getElementById('menuSearchHint');
     const menuQty = document.getElementById('menuQty');
     const addMenuBtn = document.getElementById('addMenuBtn');
     menuTbody = document.querySelector('#menuItemsTable tbody');
+
+    function selectMenuFromSearch() {
+      if (!menuSearch || !menuSelect) return;
+      const typed = menuSearch.value.trim();
+      const matchingOption = Array.from(menuSelect.options).find((option) => option.textContent.trim() === typed);
+      menuSelect.value = matchingOption ? matchingOption.value : '';
+      if (matchingOption) {
+        menuSearchHint.textContent = `Selected: ${matchingOption.textContent.trim()}`;
+        menuSearchHint.classList.remove('text-danger');
+      } else if (typed) {
+        menuSearchHint.textContent = 'Keep typing and choose one of the suggestions.';
+        menuSearchHint.classList.add('text-danger');
+      } else {
+        menuSearchHint.textContent = 'Start typing to find a menu item.';
+        menuSearchHint.classList.remove('text-danger');
+      }
+    }
+
+    menuSearch?.addEventListener('input', selectMenuFromSearch);
+    menuSearch?.addEventListener('change', selectMenuFromSearch);
     recalc();
     const quickMenuForm = document.getElementById('quickMenuForm');
     const quickMenuSubmit = document.getElementById('quickMenuSubmit');
@@ -593,9 +622,14 @@
         }
 
         const item = data.item;
-        const option = new Option(item.label, item.id, true, true);
+        const searchableLabel = `${item.label} - PKR ${item.price || '0.00'}`;
+        const option = new Option(searchableLabel, item.id, true, true);
         option.dataset.price = item.price || '0';
         menuSelect.add(option);
+        const datalist = document.getElementById('menuSearchOptions');
+        if (datalist) datalist.insertAdjacentHTML('beforeend', `<option value="${searchableLabel.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"></option>`);
+        if (menuSearch) menuSearch.value = searchableLabel;
+        selectMenuFromSearch();
         menuQty.value = '1';
         addMenuRow(item.id, item.label, 1, item.price || '0');
         quickMenuForm.reset();
