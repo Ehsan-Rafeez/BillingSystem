@@ -72,6 +72,40 @@
     font-weight: 700;
     text-align: center;
   }
+  .menu-item-action {
+    padding-top: 32px;
+  }
+  .menu-search-box {
+    position: relative;
+  }
+  .menu-search-results {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 4px);
+    right: 0;
+    left: 0;
+    max-height: 260px;
+    overflow-y: auto;
+    border: 1px solid #cbd5e1;
+    border-radius: .5rem;
+    background: #fff;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .16);
+  }
+  .menu-search-result {
+    display: block;
+    width: 100%;
+    padding: .65rem .75rem;
+    border: 0;
+    border-bottom: 1px solid #eef2f7;
+    background: #fff;
+    color: #172033;
+    text-align: left;
+  }
+  .menu-search-result:hover,
+  .menu-search-result:focus-visible {
+    background: #eef5ff;
+    outline: none;
+  }
   @media (max-width: 991.98px) {
     .summary-card {
       position: static;
@@ -222,15 +256,13 @@
 
               <!-- Menu Items -->
               <h5 class="section-title mb-3"><i class="bi bi-egg-fried me-2"></i>Menu Items</h5>
-              <div class="row g-3 align-items-end">
+              <div class="row g-3 align-items-start">
                 <div class="col-lg-6">
                   <label class="form-label"><i class="bi bi-search"></i>Search Menu Item</label>
-                  <input type="search" class="form-control" id="menuSearch" list="menuSearchOptions" placeholder="Type item name to search..." autocomplete="off">
-                  <datalist id="menuSearchOptions">
-                    {% for m in menu_items %}
-                      <option value="{{ m.name }} ({{ m.category|default:'-' }}, {{ m.get_pricing_unit_display }}) - PKR {{ m.price_per_portion|default:'0.00' }}"></option>
-                    {% endfor %}
-                  </datalist>
+                  <div class="menu-search-box">
+                    <input type="search" class="form-control" id="menuSearch" placeholder="Type item name to search..." autocomplete="off">
+                    <div id="menuSearchResults" class="menu-search-results" hidden role="listbox"></div>
+                  </div>
                   <div class="helper mt-1" id="menuSearchHint">Start typing to find a menu item.</div>
                   <select class="form-select visually-hidden" id="menuSelect" aria-hidden="true" tabindex="-1">
                     <option value="">-- choose menu item --</option>
@@ -247,10 +279,10 @@
                   <label class="form-label"><i class="bi bi-123"></i>Qty / Unit</label>
                   <input type="number" id="menuQty" class="form-control" min="1" value="1">
                 </div>
-                <div class="col-sm-3 col-lg-2">
+                <div class="col-sm-3 col-lg-2 menu-item-action">
                   <button type="button" id="addMenuBtn" class="btn btn-outline-primary w-100"><i class="bi bi-plus-circle"></i> Add</button>
                 </div>
-                <div class="col-sm-3 col-lg-2">
+                <div class="col-sm-3 col-lg-2 menu-item-action">
                   <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#quickMenuModal">
                     <i class="bi bi-plus-square"></i> New
                   </button>
@@ -514,18 +546,38 @@
     // Menu items UI
     const menuSelect = document.getElementById('menuSelect');
     const menuSearch = document.getElementById('menuSearch');
+    const menuSearchResults = document.getElementById('menuSearchResults');
     const menuSearchHint = document.getElementById('menuSearchHint');
     const menuQty = document.getElementById('menuQty');
     const addMenuBtn = document.getElementById('addMenuBtn');
     menuTbody = document.querySelector('#menuItemsTable tbody');
+    const menuEntries = Array.from(menuSelect.options)
+      .filter((option) => option.value)
+      .map((option) => ({ value: option.value, text: option.textContent.trim(), search: option.textContent.trim().toLowerCase() }));
+
+    function renderMenuSearchResults() {
+      if (!menuSearchResults || !menuSearch) return;
+      const query = menuSearch.value.trim().toLowerCase();
+      const matches = menuEntries.filter((entry) => !query || entry.search.includes(query)).slice(0, 12);
+      menuSearchResults.replaceChildren();
+      matches.forEach((entry) => {
+        const result = document.createElement('button');
+        result.type = 'button';
+        result.className = 'menu-search-result';
+        result.dataset.value = entry.value;
+        result.textContent = entry.text;
+        menuSearchResults.appendChild(result);
+      });
+      menuSearchResults.hidden = matches.length === 0;
+    }
 
     function selectMenuFromSearch() {
       if (!menuSearch || !menuSelect) return;
       const typed = menuSearch.value.trim();
-      const matchingOption = Array.from(menuSelect.options).find((option) => option.textContent.trim() === typed);
-      menuSelect.value = matchingOption ? matchingOption.value : '';
-      if (matchingOption) {
-        menuSearchHint.textContent = `Selected: ${matchingOption.textContent.trim()}`;
+      const matchingEntry = menuEntries.find((entry) => entry.text === typed);
+      menuSelect.value = matchingEntry ? matchingEntry.value : '';
+      if (matchingEntry) {
+        menuSearchHint.textContent = `Selected: ${matchingEntry.text}`;
         menuSearchHint.classList.remove('text-danger');
       } else if (typed) {
         menuSearchHint.textContent = 'Choose a matching item from the suggestions.';
@@ -536,7 +588,22 @@
       }
     }
 
-    menuSearch?.addEventListener('input', selectMenuFromSearch);
+    menuSearch?.addEventListener('input', () => {
+      selectMenuFromSearch();
+      window.requestAnimationFrame(renderMenuSearchResults);
+    });
+    menuSearch?.addEventListener('focus', renderMenuSearchResults);
+    menuSearch?.addEventListener('blur', () => window.setTimeout(() => { if (menuSearchResults) menuSearchResults.hidden = true; }, 150));
+    menuSearchResults?.addEventListener('mousedown', (event) => {
+      const result = event.target.closest('.menu-search-result');
+      if (!result) return;
+      event.preventDefault();
+      const matchingEntry = menuEntries.find((entry) => entry.value === result.dataset.value);
+      if (!matchingEntry) return;
+      menuSearch.value = matchingEntry.text;
+      selectMenuFromSearch();
+      menuSearchResults.hidden = true;
+    });
     menuSearch?.addEventListener('change', selectMenuFromSearch);
     recalc();
     const quickMenuForm = document.getElementById('quickMenuForm');
@@ -626,8 +693,7 @@
         const option = new Option(searchableLabel, item.id, true, true);
         option.dataset.price = item.price || '0';
         menuSelect.add(option);
-        const datalist = document.getElementById('menuSearchOptions');
-        if (datalist) datalist.insertAdjacentHTML('beforeend', `<option value="${searchableLabel.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"></option>`);
+        menuEntries.push({ value: String(item.id), text: searchableLabel, search: searchableLabel.toLowerCase() });
         if (menuSearch) menuSearch.value = searchableLabel;
         selectMenuFromSearch();
         menuQty.value = '1';
