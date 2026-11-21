@@ -30,6 +30,8 @@ def api_response(payload, status=200):
 
 
 def get_payload(request):
+    if request.content_type and request.content_type.startswith("multipart/"):
+        return request.POST
     try:
         return json.loads(request.body.decode("utf-8") or "{}")
     except json.JSONDecodeError:
@@ -716,8 +718,16 @@ def suppliers(request):
             {
                 "id": supplier.id,
                 "name": supplier.name,
+                "type": supplier.supplier_type,
+                "typeLabel": supplier.get_supplier_type_display(),
+                "email": supplier.email,
                 "balance": money(supplier.balance_due),
                 "phone": supplier.phone,
+                "contactPerson": supplier.contact_person,
+                "taxNumber": supplier.tax_number,
+                "address": supplier.address,
+                "notes": supplier.notes,
+                "isActive": supplier.is_active,
                 "lastPayment": last_payment.payment_date.isoformat() if last_payment else "No payments",
             }
         )
@@ -728,9 +738,12 @@ def suppliers(request):
 @require_POST
 def supplier_create(request):
     payload = get_payload(request)
+    supplier_type = (payload.get("type") or payload.get("supplierType") or Supplier.BUSINESS).strip().upper()
+    if supplier_type not in {Supplier.BUSINESS, Supplier.INDIVIDUAL}:
+        supplier_type = Supplier.BUSINESS
     supplier = Supplier(
         name=(payload.get("name") or "").strip(),
-        supplier_type=payload.get("type") or Supplier.BUSINESS,
+        supplier_type=supplier_type,
         email=(payload.get("email") or "").strip(),
         phone=(payload.get("phone") or "").strip(),
         contact_person=(payload.get("contactPerson") or "").strip(),
@@ -864,5 +877,7 @@ def shop_settings_update(request):
     shop.show_invoice_shop_name = bool(payload.get("showInvoiceShopName", True))
     shop.show_invoice_logo = bool(payload.get("showInvoiceLogo", True))
     shop.show_invoice_bank_details = bool(payload.get("showInvoiceBankDetails", True))
+    if request.FILES.get("invoiceLogo"):
+        shop.invoice_logo = request.FILES["invoiceLogo"]
     shop.save()
     return api_response({"ok": True, "settings": serialize_shop_settings(shop)})

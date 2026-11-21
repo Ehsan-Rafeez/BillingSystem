@@ -11,6 +11,8 @@
   .invoice-section { padding:1.5rem; }
   .invoice-title { font-size:1.75rem; font-weight:800; margin:0; }
   .muted { color:#64748b; }
+  .invoice-bank-footer { margin:0 1.5rem 1.5rem; padding-top:1rem; border-top:1px solid #e5e7eb; color:#334155; }
+  .bank-details-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:.25rem 1.5rem; }
   .print-actions { display:flex; justify-content:space-between; gap:.75rem; margin-bottom:1rem; }
   .invoice-card > * { break-inside: avoid; }
   @media print {
@@ -22,6 +24,7 @@
     .invoice-card { border:0; border-radius:0; zoom:.82; }
     .invoice-head { padding:.7rem 0; gap:1rem; }
     .invoice-section { padding:.7rem 0; }
+    .invoice-bank-footer { margin:0; padding-top:.55rem; }
     .invoice-logo { max-height:55px; margin-bottom:.35rem !important; }
     .invoice-title { font-size:1.35rem; }
     .invoice-card .table { font-size:.82rem; }
@@ -30,6 +33,10 @@
     .invoice-card .g-4 { --bs-gutter-x:1rem; --bs-gutter-y:.5rem; }
     .invoice-card .mt-2 { margin-top:.35rem !important; }
     .invoice-card .fs-5 { font-size:1rem !important; }
+  }
+  @media (max-width: 576px) {
+    .invoice-bank-footer { margin:0 1rem 1rem; }
+    .bank-details-grid { grid-template-columns:1fr; }
   }
 </style>
 
@@ -124,20 +131,8 @@
 
     <div class="invoice-section pt-0">
       <div class="row g-4">
-        <div class="col-md-7">
-          {% if shop and shop.show_invoice_bank_details %}
-            <h6 class="text-uppercase muted">Bank Details</h6>
-            {% if shop.bank_name %}<div><strong>Bank:</strong> {{ shop.bank_name }}</div>{% endif %}
-            {% if shop.bank_account_title %}<div><strong>Account Title:</strong> {{ shop.bank_account_title }}</div>{% endif %}
-            {% if shop.bank_account_number %}<div><strong>Account No:</strong> {{ shop.bank_account_number }}</div>{% endif %}
-            {% if shop.bank_iban %}<div><strong>IBAN:</strong> {{ shop.bank_iban }}</div>{% endif %}
-            {% if shop.bank_branch %}<div><strong>Branch:</strong> {{ shop.bank_branch }}</div>{% endif %}
-            {% if shop.bank_branch_code %}<div><strong>Branch Code:</strong> {{ shop.bank_branch_code }}</div>{% endif %}
-            {% if shop.bank_swift_code %}<div><strong>SWIFT/BIC:</strong> {{ shop.bank_swift_code }}</div>{% endif %}
-            {% if shop.bank_payment_instructions %}<div class="mt-2">{{ shop.bank_payment_instructions|linebreaksbr }}</div>{% endif %}
-          {% endif %}
-        </div>
-        <div class="col-md-5">
+        <div class="col-12 d-flex justify-content-end">
+          <div class="w-100" style="max-width: 360px;">
           <div class="d-flex justify-content-between border-bottom py-2">
             <span>Subtotal</span><strong>PKR {{ order.gross_amount }}</strong>
           </div>
@@ -153,9 +148,26 @@
           <div class="d-flex justify-content-between py-2 fs-5">
             <span>Due</span><strong>PKR {{ order.due_amount }}</strong>
           </div>
+          </div>
         </div>
       </div>
     </div>
+
+    {% if shop and shop.show_invoice_bank_details %}
+      <div class="invoice-bank-footer">
+        <h6 class="text-uppercase muted mb-2">Bank Details</h6>
+        <div class="bank-details-grid">
+          {% if shop.bank_name %}<div><strong>Bank:</strong> {{ shop.bank_name }}</div>{% endif %}
+          {% if shop.bank_account_title %}<div><strong>Account Title:</strong> {{ shop.bank_account_title }}</div>{% endif %}
+          {% if shop.bank_account_number %}<div><strong>Account No:</strong> {{ shop.bank_account_number }}</div>{% endif %}
+          {% if shop.bank_iban %}<div><strong>IBAN:</strong> {{ shop.bank_iban }}</div>{% endif %}
+          {% if shop.bank_branch %}<div><strong>Branch:</strong> {{ shop.bank_branch }}</div>{% endif %}
+          {% if shop.bank_branch_code %}<div><strong>Branch Code:</strong> {{ shop.bank_branch_code }}</div>{% endif %}
+          {% if shop.bank_swift_code %}<div><strong>SWIFT/BIC:</strong> {{ shop.bank_swift_code }}</div>{% endif %}
+        </div>
+        {% if shop.bank_payment_instructions %}<div class="mt-2">{{ shop.bank_payment_instructions|linebreaksbr }}</div>{% endif %}
+      </div>
+    {% endif %}
   </div>
 </div>
 
